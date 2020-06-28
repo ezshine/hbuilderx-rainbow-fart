@@ -1,0 +1,35 @@
+{
+	"name": "codinglover",
+	"description": "会在你编程时给你爱的鼓励",
+	"displayName": "编程伴侣",
+	"version": "0.0.6",
+	"publisher": "ezshine",
+	"engines": {
+		"HBuilderX": "^2.7.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"main": "./extension",
+	"contributes": {
+		"configuration":{
+			"title":"编程伴侣",
+			"properties":{
+				"codinglover.voicePackageName":{
+					"type":"string",
+					"default":"default",
+					"description":"语音包名称"
+				},
+				"codinglover.inputDetectInterval":{
+					"type":"number",
+					"default":5000,
+					"description":"输入监测间隔"
+				}
+			}
+		}
+	},
+	"extensionDependencies": [
+		"plugin-manager"
+	],
+	"dependencies": {}
+}
