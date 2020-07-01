@@ -1,8 +1,8 @@
 {
 	"name": "codinglover",
-	"description": "会在你编程时给你爱的鼓励",
+	"description": "大更新来咯，除了有彩虹屁，还有虚拟彩虹老婆陪着你呢。会在你编程时给你爱的鼓励哟！",
 	"displayName": "编程伴侣",
-	"version": "0.0.6",
+	"version": "0.1.0",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.0"
@@ -12,24 +12,59 @@
 	],
 	"main": "./extension",
 	"contributes": {
-		"configuration":{
-			"title":"编程伴侣",
-			"properties":{
-				"codinglover.voicePackageName":{
-					"type":"string",
-					"default":"default",
-					"description":"语音包名称"
+		"configuration": {
+			"title": "编程伴侣",
+			"properties": {
+				"codinglover.disabledRainbowFart": {
+					"type": "boolean",
+					"default": false,
+					"description": "禁用语音彩虹屁"
 				},
-				"codinglover.inputDetectInterval":{
-					"type":"number",
-					"default":5000,
-					"description":"输入监测间隔"
+				"codinglover.voicePackageName": {
+					"type": "string",
+					"default": "default",
+					"description": "语音包名称"
+				},
+				"codinglover.inputDetectInterval": {
+					"type": "number",
+					"default": 5000,
+					"description": "输入监测间隔"
+				},
+				"codinglover.disableLive2d": {
+					"type": "boolean",
+					"default": false,
+					"description": "禁用虚拟老婆"
+				},
+				"codinglover.live2dPackageName": {
+					"type": "string",
+					"default": "liang",
+					"description": "虚拟老婆名称"
 				}
 			}
+		},
+		"commands": [
+			{
+				"command": "extension.showCodingAnalysis",
+				"title": "编程报告"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "extension.showCodingAnalysis",
+					"group": "z_commands",
+					"when": "editorTextFocus"
+				},
+				{
+					"group": "z_commands"
+				}
+			]
 		}
 	},
 	"extensionDependencies": [
 		"plugin-manager"
 	],
-	"dependencies": {}
+	"dependencies": {
+		"messenger": "0.0.9"
+	}
 }
