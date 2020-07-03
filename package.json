@@ -1,8 +1,8 @@
 {
 	"name": "codinglover",
-	"description": "大更新来咯，除了有彩虹屁，还有虚拟彩虹老婆陪着你呢。会在你编程时给你爱的鼓励哟！",
+	"description": "支持Mac，Windows。除了有彩虹屁，还有彩虹屁老婆陪着你呢。会在你编程时给你爱的鼓励哟！",
 	"displayName": "编程伴侣",
-	"version": "0.1.0",
+	"version": "0.1.7",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.0"
@@ -15,6 +15,11 @@
 		"configuration": {
 			"title": "编程伴侣",
 			"properties": {
+				"codinglover.enabledDebug": {
+					"type": "boolean",
+					"default": false,
+					"description": "开启调试模式"
+				},
 				"codinglover.disabledRainbowFart": {
 					"type": "boolean",
 					"default": false,
@@ -30,15 +35,15 @@
 					"default": 5000,
 					"description": "输入监测间隔"
 				},
-				"codinglover.disableLive2d": {
+				"codinglover.enabledLive2d": {
 					"type": "boolean",
 					"default": false,
-					"description": "禁用虚拟老婆"
+					"description": "启用彩虹屁老婆"
 				},
 				"codinglover.live2dPackageName": {
 					"type": "string",
 					"default": "liang",
-					"description": "虚拟老婆名称"
+					"description": "老婆数据包名称"
 				}
 			}
 		},

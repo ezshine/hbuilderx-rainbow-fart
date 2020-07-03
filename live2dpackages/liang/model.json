@@ -21,6 +21,75 @@
 			"id": "D_REF.PT_BODY"
 		}
 	],
+	"contributes": [
+	    {
+	        "keywords": ["function", "=>", "func ", "def "],
+	        "motions":[
+	            "mtn/aoba_live2D_24.mtn",
+	            "mtn/aoba_live2D_05.mtn",
+	            "mtn/aoba_live2D_19.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["=>"],
+	        "motions": [
+				"mtn/aoba_live2D_14.mtn"
+			]
+	    },
+	    {
+	        "keywords": ["if"],
+	        "motions": [
+	            "mtn/aoba_live2D_31.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["for", "while"],
+	        "motions": [
+	            "mtn/aoba_live2D_29.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["await"],
+	        "motions": [
+	            "mtn/aoba_live2D_18.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["catch", "except", "err != nil", "err!=nil"],
+	        "motions": [
+	            "mtn/aoba_live2D_30.mtn",
+	            "mtn/aoba_live2D_24.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["import", "include"],
+	        "motions": [
+	            "mtn/aoba_live2D_17.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["fuck", "shit"],
+	        "motions": [
+	            "mtn/aoba_live2D_20.mtn"
+	        ]
+	    },
+	    {
+	        "keywords": ["$time_before_noon"],
+	        "motions": ["mtn/aoba_live2D_32.mtn"]
+	    },
+	    {
+	        "keywords": ["$time_noon"],
+	        "motions": ["mtn/aoba_live2D_19.mtn"]
+	    },
+	    {
+	        "keywords": ["$time_evening"],
+	        "motions": ["mtn/aoba_live2D_05.mtn"]
+	    },
+	    {
+	        "keywords": ["$time_midnight"],
+	        "motions": ["mtn/aoba_live2D_32.mtn"]
+	    }
+	],
 	"motions": {
 		"idle": [
 			{
@@ -181,7 +250,7 @@
 		],
 		"new_msg": [
 			{
-				"file": "motions/aoba_live2D_01.mtn",
+				"file": "mtn/aoba_live2D_01.mtn",
 				"sound": "voice/new_msg.mp3"
 			}
 		]

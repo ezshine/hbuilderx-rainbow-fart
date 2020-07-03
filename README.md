@@ -9,16 +9,26 @@
 
 - 彩虹老婆
 
+  由于老婆容器使用electron开发，包体过大（后续将优化大小），请先下载老婆容器：
+  下载地址：https://gitee.com/ezshine/live2dplayer
+  在dist目录下，选择对应系统的执行live2dplayer.exe或live2dplayer.app，
+  下载后存放于插件目录下的players文件夹下（和mp3player.exe同目录）
+  
   ~~~~
   注意注意，她真的来了！
-  请先下载老婆容器：
-  https://gitee.com/ezshine/live2dplayer
-  在dist目录下
   
   插件包中默认放了一款老婆数据，当然！你还可以下载很多不同款式的老婆。
   
   在工作时间为大家开发彩虹老婆，被领导发现了，扣了200元工资。
   球球各位给个五星好评可以么！
+  
+  各种款式老婆数据包：
+  1、https://github.com/xiaoski/live2d_models_collection
+  2、https://github.com/xiazeyu/live2d-widget-models/tree/master/packages
+  
+  ！！！老婆数据包下载后存放于
+  live2dpackages目录下，老婆数据包内必须包含model.json文件。
+  请百度live2d的文件结构，基本上一个数据包内都有一个json文件，如果不叫model.json,那就改名为model.json
   ~~~~
 
 - 程序员鼓励师
