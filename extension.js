@@ -50,23 +50,29 @@ function activate(context) {
 	const pluginConfig = hx.workspace.getConfiguration("codinglover");
 	//是否开启虚拟老婆
 	enabledDebug = pluginConfig.get("enabledDebug", false);
+	//是否开启虚拟老婆
+	let enabledLive2d = pluginConfig.get("enabledLive2d", false);
+	//虚拟老婆名称
+	let live2dPackageName = pluginConfig.get("live2dPackageName", "liang") || "liang";
+	
+	//调试使用的参数，发布前必须注释掉
+	// enabledLive2d = true;
 	// enabledDebug = true;
+	// live2dPackageName="xiaomai";
+	
 	if (enabledDebug) {
 		outputChannel = hx.window.createOutputChannel("编程伴侣");
 		outputChannel.show();
 	}
-	//是否开启虚拟老婆
-	let enabledLive2d = pluginConfig.get("enabledLive2d", false);
-	// enabledLive2d=true;
-	//虚拟老婆名称
-	let live2dPackageName = pluginConfig.get("live2dPackageName", "liang") || "liang";
-	// live2dPackageName="pio";
+	
 	//是否禁用彩虹屁
 	const disabledRainbowFart = pluginConfig.get("disabledRainbowFart", false);
 	//输入监测时间间隔
 	const inputDetectInterval = pluginConfig.get("inputDetectInterval", 5000) || 5000;
 	//语音包名称
 	const voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
+
+	
 
 	//检查插件配置
 	debugLog("enabledDebug：" + enabledDebug);
@@ -87,7 +93,7 @@ function activate(context) {
 			model: path.join(lpPath, "/model.json"),
 			commands: [{
 				motionfile: "mtn/aoba_live2D_20.mtn",
-				text: "哎呀！翻车了！",
+				text: "哎呀！又翻车了呢！",
 				voice: path.join(vpPath, "crash.mp3")
 			}],
 			sendlog: enabledDebug
