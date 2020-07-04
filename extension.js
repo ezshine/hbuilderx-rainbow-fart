@@ -1,6 +1,6 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.7
+版本：0.1.8
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -58,7 +58,7 @@ function activate(context) {
 	//调试使用的参数，发布前必须注释掉
 	// enabledLive2d = true;
 	// enabledDebug = true;
-	// live2dPackageName="xiaomai";
+	// live2dPackageName="shizuku";
 	
 	if (enabledDebug) {
 		outputChannel = hx.window.createOutputChannel("编程伴侣");
@@ -72,8 +72,6 @@ function activate(context) {
 	//语音包名称
 	const voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
 
-	
-
 	//检查插件配置
 	debugLog("enabledDebug：" + enabledDebug);
 	debugLog("enabledLive2d：" + enabledLive2d);
@@ -83,55 +81,60 @@ function activate(context) {
 	debugLog("voicePackageName：" + voicePackageName);
 
 	//老婆数据路径
-	const lpPath = path.join(__dirname, "live2dpackages", live2dPackageName);
+	const lpPath = path.posix.join(__dirname, "live2dpackages", live2dPackageName);
 	let lpModelData;
 	server.on('wifeContainerReady', function(m, data) {
 		debugLog("老婆容器已就绪，容器版本：" + data.v);
+		
+		if(!fs.existsSync(path.posix.join(lpPath, "model.json"))){
+			debugLog("老婆数据包错误：" + path.posix.join(lpPath, "model.json"));
+			return;
+		}
+		
 		debugLog("通知容器加载老婆数据：" + lpPath);
 		wifeIsReady = true;
 		client.shout('loadModel', {
-			model: path.join(lpPath, "/model.json"),
+			model: path.posix.join(lpPath, "model.json"),
 			commands: [{
 				motionfile: "mtn/aoba_live2D_20.mtn",
 				text: "哎呀！又翻车了呢！",
-				voice: path.join(vpPath, "crash.mp3")
+				voice: path.posix.join(vpPath, "crash.mp3")
 			}],
 			sendlog: enabledDebug
 		});
 
-		lpModelData = JSON.parse(fs.readFileSync(path.join(lpPath, "/model.json")));
+		lpModelData = JSON.parse(fs.readFileSync(path.posix.join(lpPath, "model.json")));
 
 		server.on("wifeContainerLog", function(m, data) {
 			debugLog("来自老婆容器：" + data);
 		});
 	});
 	//老婆容器路径
-	const live2dPlayer = path.join(__dirname, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe"));
+	const live2dPlayer = path.posix.join(__dirname, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe"));
 
 	//如果启用老婆
 	if (enabledLive2d) {
 		//如果老婆容器存在
-		if (ostype != "Darwin") return showInformation("彩虹屁老婆暂时仅支持Mac系统，如希望尽快在Windows版上可用，请给与编程伴侣插件五星好评，我会努力加快兼容windows。");
 		if (fs.existsSync(live2dPlayer)) {
 			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer;
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
-			showInformation('没有找到老婆容器：' + live2dPlayer);
+			showInformation('没有找到老婆容器：' + live2dPlayer+"<br>请前往https://gitee.com/ezshine/live2dplayer/released下载老婆容器");
 		}
 	}
 
 	//根据当前系统是window还是macos选择默认的音频播放器
-	const mp3Player = (ostype == "Darwin" ? "afplay" : path.join(__dirname, "players", "mp3player.exe"));
+	const mp3Player = (ostype == "Darwin" ? "afplay" : path.posix.join(__dirname, "players", "mp3player.exe"));
 	//语音包路径
-	const vpPath = path.join(__dirname, "voicepackages", voicePackageName);
+	const vpPath = path.posix.join(__dirname, "voicepackages", voicePackageName);
 
 	//校验语音包
 	if (!fs.existsSync(vpPath)) {
 		showInformation('没有找到语音包：' + voicePackageName);
 		return;
 	}
-	if (!fs.existsSync(path.join(vpPath, "contributes.json"))) {
+	if (!fs.existsSync(path.posix.join(vpPath, "contributes.json"))) {
 		showInformation('没有找到语音包配置文件(contributes.json)');
 		return;
 	};
@@ -140,7 +143,7 @@ function activate(context) {
 	//语音包信息
 	// const vpInfo = JSON.parse(fs.readFileSync(vpPath + "manifest.json"));
 	//语音包配置表
-	const vpContributes = JSON.parse(fs.readFileSync(path.join(vpPath, "contributes.json"))).contributes;
+	const vpContributes = JSON.parse(fs.readFileSync(path.posix.join(vpPath, "contributes.json"))).contributes;
 	//时间标记名称，用于计算每一个时间标记提醒仅提醒一次
 	let voice_mark = "";
 	let last_voice_mark = "";
@@ -210,7 +213,7 @@ function activate(context) {
 		}
 
 		let motions;
-		if (wifeIsReady) {
+		if (wifeIsReady&&lpModelData.contributes) {
 			hitkeyword: for (let i = lpModelData.contributes.length - 1; i >= 0; i--) {
 				const item = lpModelData.contributes[i];
 				const keywords = item.keywords;
@@ -234,7 +237,7 @@ function activate(context) {
 
 				//音频播放器命令路径，将空格转义
 				let playerpath = mp3Player.replace(/ /g, '\\ ');
-				let audiopath = path.join(vpPath, voices[voice_index]);
+				let audiopath = path.posix.join(vpPath, voices[voice_index]);
 				audiopath = audiopath.replace(/ /g, '\\ ');
 
 				const cmd = playerpath + " " + audiopath;

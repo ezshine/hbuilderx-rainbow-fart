@@ -2,7 +2,7 @@
 	"name": "codinglover",
 	"description": "支持Mac，Windows。除了有彩虹屁，还有彩虹屁老婆陪着你呢。会在你编程时给你爱的鼓励哟！",
 	"displayName": "编程伴侣",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.0"
