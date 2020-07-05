@@ -27,13 +27,13 @@
 				},
 				"codinglover.voicePackageName": {
 					"type": "string",
-					"default": "default",
-					"description": "语音包名称"
+					"default": "justkowalski",
+					"description": "彩虹屁语音包名称"
 				},
 				"codinglover.inputDetectInterval": {
 					"type": "number",
 					"default": 5000,
-					"description": "输入监测间隔"
+					"description": "输入监测间隔 (毫秒)"
 				},
 				"codinglover.enabledLive2d": {
 					"type": "boolean",

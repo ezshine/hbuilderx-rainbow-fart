@@ -70,8 +70,7 @@ function activate(context) {
 	//输入监测时间间隔
 	const inputDetectInterval = pluginConfig.get("inputDetectInterval", 5000) || 5000;
 	//语音包名称
-	let voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
-	voicePackageName="sharonring";
+	let voicePackageName = pluginConfig.get("voicePackageName", "justkowalski") || "justkowalski";
 	//检查插件配置
 	debugLog("enabledDebug：" + enabledDebug);
 	debugLog("enabledLive2d：" + enabledLive2d);
