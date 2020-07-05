@@ -1,6 +1,6 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.8
+版本：0.1.9
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -70,8 +70,8 @@ function activate(context) {
 	//输入监测时间间隔
 	const inputDetectInterval = pluginConfig.get("inputDetectInterval", 5000) || 5000;
 	//语音包名称
-	const voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
-
+	let voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
+	voicePackageName="sharonring";
 	//检查插件配置
 	debugLog("enabledDebug：" + enabledDebug);
 	debugLog("enabledLive2d：" + enabledLive2d);
@@ -120,7 +120,7 @@ function activate(context) {
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
-			showInformation('没有找到老婆容器：' + live2dPlayer+"<br>请前往https://gitee.com/ezshine/live2dplayer/released下载老婆容器");
+			showInformation('没有找到老婆容器：' + live2dPlayer+'<br><br><a href="https://gitee.com/ezshine/live2dplayer/tree/master/released" >下载老婆容器</a>');
 		}
 	}
 
@@ -275,7 +275,8 @@ function debugLog(str) {
 
 //统一通知
 function showInformation(msg, title = "编程伴侣") {
-	hx.window.showInformationMessage('<span style="color:#3366ff">' + title + '</span><br>' + msg);
+	var str='<span style="color:#3366ff">' + title + '</span><br>'+msg;
+	return hx.window.showInformationMessage(str);
 }
 
 function showWifeMotion(motionfile) {
