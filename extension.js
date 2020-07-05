@@ -57,7 +57,7 @@ function activate(context) {
 	
 	//调试使用的参数，发布前必须注释掉
 	// enabledLive2d = true;
-	// enabledDebug = true;
+	enabledDebug = true;
 	// live2dPackageName="shizuku";
 	
 	if (enabledDebug) {
@@ -95,11 +95,28 @@ function activate(context) {
 		wifeIsReady = true;
 		client.shout('loadModel', {
 			model: path.posix.join(lpPath, "model.json"),
-			commands: [{
-				motionfile: "mtn/aoba_live2D_20.mtn",
-				text: "哎呀！又翻车了呢！",
-				voice: path.posix.join(vpPath, "crash.mp3")
-			}],
+			commands: [
+				{
+					motionfile: "mtn/aoba_live2D_24.mtn",
+					text: "是不是遇到麻烦了？",
+					voice: path.posix.join(vpPath, "console_2.mp3")
+				},
+				{
+					motionfile: "mtn/aoba_live2D_28.mtn",
+					text: "别着急，冷静下，困难一定能解决的",
+					voice: path.posix.join(vpPath, "console_3.mp3")
+				},
+				{
+					motionfile: "mtn/aoba_live2D_08.mtn",
+					text: "现在开始执行B计划",
+					voice: path.posix.join(vpPath, "except_1.mp3")
+				},
+				{
+					motionfile: "mtn/aoba_live2D_23.mtn",
+					text: "愿梦里没有bug",
+					voice: path.posix.join(vpPath, "time_midnight_1.mp3")
+				},
+			],
 			sendlog: enabledDebug
 		});
 
