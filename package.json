@@ -1,8 +1,8 @@
 {
 	"name": "codinglover",
-	"description": "已更新win版老婆容器。除了有彩虹屁，还有彩虹屁老婆陪着你呢。会在你编程时给你爱的鼓励哟！",
-	"displayName": "编程伴侣",
-	"version": "0.1.9",
+	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
+	"displayName": "编程伴侣（彩虹屁老婆）",
+	"version": "0.1.12",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.0"
@@ -27,12 +27,12 @@
 				},
 				"codinglover.voicePackageName": {
 					"type": "string",
-					"default": "justkowalski",
+					"default": "sharonring",
 					"description": "彩虹屁语音包名称"
 				},
 				"codinglover.inputDetectInterval": {
 					"type": "number",
-					"default": 5000,
+					"default": 2000,
 					"description": "输入监测间隔 (毫秒)"
 				},
 				"codinglover.enabledLive2d": {
@@ -63,6 +63,15 @@
 				{
 					"group": "z_commands"
 				}
+			],
+			"menubar/tool": [
+				{
+					"group": "z_commands"
+				},
+				{
+					"command": "extension.codinglover",
+					"group": "z_commands"
+				}
 			]
 		}
 	},
@@ -70,6 +79,7 @@
 		"plugin-manager"
 	],
 	"dependencies": {
-		"messenger": "0.0.9"
+		"messenger": "0.0.9",
+		"open": "latest"
 	}
 }
