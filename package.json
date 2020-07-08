@@ -2,7 +2,7 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）",
-	"version": "0.1.12",
+	"version": "0.1.14",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.0"
@@ -28,12 +28,17 @@
 				"codinglover.voicePackageName": {
 					"type": "string",
 					"default": "sharonring",
-					"description": "彩虹屁语音包名称"
+					"description": "彩虹屁语音包名"
 				},
-				"codinglover.inputDetectInterval": {
-					"type": "number",
-					"default": 2000,
-					"description": "输入监测间隔 (毫秒)"
+				"codinglover.inputDetectIntervalName": {
+					"type": "string",
+					"default": "及时",
+					"description": "彩虹屁语音触发",
+					"enum":[
+						"瞬时",
+						"及时",
+						"延时"
+					]
 				},
 				"codinglover.enabledLive2d": {
 					"type": "boolean",
@@ -43,7 +48,7 @@
 				"codinglover.live2dPackageName": {
 					"type": "string",
 					"default": "liang",
-					"description": "老婆数据包名称"
+					"description": "老婆模型名称"
 				}
 			}
 		},
@@ -51,6 +56,18 @@
 			{
 				"command": "extension.showCodingAnalysis",
 				"title": "编程报告"
+			},
+			{
+				"command": "extension.codingloverPickVP",
+				"title": "切换语音包"
+			},
+			{
+				"command": "extension.codingloverPickLP",
+				"title": "切换老婆模型"
+			},
+			{
+				"command": "extension.codingloverDownloadLP",
+				"title": "下载更多老婆模型"
 			}
 		],
 		"menus": {
@@ -69,8 +86,21 @@
 					"group": "z_commands"
 				},
 				{
-					"command": "extension.codinglover",
+					"id":"codinglover",
+					"title":"编程伴侣",
 					"group": "z_commands"
+				},
+				{
+					"command": "extension.codingloverPickVP",
+					"group": "codinglover@1"
+				},
+				{
+					"command": "extension.codingloverPickLP",
+					"group": "codinglover@2"
+				},
+				{
+					"command": "extension.codingloverDownloadLP",
+					"group": "codinglover@3"
 				}
 			]
 		}
@@ -79,7 +109,6 @@
 		"plugin-manager"
 	],
 	"dependencies": {
-		"messenger": "0.0.9",
-		"open": "latest"
+		"messenger": "0.0.9"
 	}
 }

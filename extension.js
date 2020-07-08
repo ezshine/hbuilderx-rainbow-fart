@@ -1,6 +1,6 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.12
+版本：0.1.14
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -22,7 +22,7 @@ const messenger = require('messenger');
 const server = messenger.createListener(32719);
 const client = messenger.createSpeaker(32718);
 
-const open = require('open');
+const pluginName="编程伴侣";
 
 //监听HBuilder Node进程的退出事件，退出时通知live2dPlayer
 const process = require('process');
@@ -30,10 +30,11 @@ process.on('exit', (code) => {
 	client.shout('hbuilderExit');
 });
 
-let os_type;
+let ostype;
 
 let input_analysis;
 let coding_start;
+let pluginConfig;
 //虚拟老婆相关配参
 let enabledLive2d;
 let live2dPackageName;
@@ -52,19 +53,8 @@ let outputChannel;
 let enabledDebug;
 //该方法将在插件激活的时候调用
 function activate(context) {
-	debugLog("好戏开始了：" + Date.now());
-	ostype = os.type;
-	debugLog("当前系统为" + ostype);
-
-	//初始化命中历史
-	coding_start = Date.now();
-	input_analysis = {};
-
-	//注册命令
-	setupCommands();
-
 	//获得插件配置
-	const pluginConfig = hx.workspace.getConfiguration("codinglover");
+	pluginConfig = hx.workspace.getConfiguration("codinglover");
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
 	openDebugChannel();
@@ -85,8 +75,8 @@ function activate(context) {
 		} else if (event.affectsConfiguration("codinglover.disabledRainbowFart")) {
 			disabledRainbowFart = pluginConfig.get("disabledRainbowFart", false);
 			debugLog("disabledRainbowFart：" + disabledRainbowFart);
-		} else if (event.affectsConfiguration("codinglover.inputDetectInterval")) {
-			inputDetectInterval = pluginConfig.get("inputDetectInterval", 2000);
+		} else if (event.affectsConfiguration("codinglover.inputDetectIntervalName")) {
+			setInputDetectInterval();
 			debugLog("inputDetectInterval：" + inputDetectInterval);
 		} else if (event.affectsConfiguration("codinglover.voicePackageName")) {
 			if (pluginConfig.get("voicePackageName", "sharonring") != voicePackageName) {
@@ -95,20 +85,32 @@ function activate(context) {
 			}
 		}
 	});
+	
+	debugLog("好戏开始了：" + Date.now());
+	ostype = os.type;
+	debugLog("当前系统为" + ostype);
+
+	//初始化命中历史
+	coding_start = Date.now();
+	input_analysis = {};
+
+	//注册命令
+	setupCommands();
 	//是否开启虚拟老婆
 	enabledLive2d = pluginConfig.get("enabledLive2d", false);
 	//虚拟老婆名称
 	live2dPackageName = pluginConfig.get("live2dPackageName", "sharonring") || "sharonring";
 
 	//调试使用的参数，发布前必须注释掉
-	// enabledLive2d = true;
+	enabledLive2d = true;
 	// enabledDebug = true;
 	// live2dPackageName="liang";
 
 	//是否禁用彩虹屁
 	disabledRainbowFart = pluginConfig.get("disabledRainbowFart", false);
 	//输入监测时间间隔
-	inputDetectInterval = pluginConfig.get("inputDetectInterval", 2000) || 2000;
+	setInputDetectInterval();
+	
 	//语音包名称
 	voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
 	//检查插件配置
@@ -164,8 +166,7 @@ function activate(context) {
 		});
 	});
 	//老婆容器路径
-	live2dPlayer = path.posix.join(__dirname, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe")).replace(
-		/ /g, '\\ ');
+	live2dPlayer = path.posix.join(__dirname, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe")).replace(/ /g, '\\ ');
 
 	//启用老婆
 	openWifeContainer();
@@ -295,10 +296,18 @@ function activate(context) {
 	}
 }
 
+//
+function setInputDetectInterval(){
+	let inputDetectIntervalName = pluginConfig.get("inputDetectIntervalName", "及时") || "及时";
+	if(inputDetectIntervalName=="瞬时")inputDetectInterval=500;
+	else if(inputDetectIntervalName=="及时")inputDetectInterval=1500;
+	else inputDetectInterval=5000;
+}
+
 //统一调试
 function openDebugChannel() {
 	if (enabledDebug) {
-		outputChannel = hx.window.createOutputChannel("编程伴侣");
+		outputChannel = hx.window.createOutputChannel(pluginName);
 		outputChannel.show();
 	}
 }
@@ -323,13 +332,13 @@ function openWifeContainer() {
 				"立即下载"
 			]);
 			download_pan.then((result) => {
-				open("https://gitee.com/ezshine/live2dplayer/raw/master/released/" + (ostype == "Darwin" ? "mac" : "win") + ".7z");
+				hx.env.openExternal("https://gitee.com/ezshine/live2dplayer/raw/master/released/" + (ostype == "Darwin" ? "mac" : "win") + ".7z");
 				let qun_pan = showInformation("加入QQ群可获得更多帮助<br>", "", [
 					"加入QQ群",
 					"先不加"
 				]);
 				qun_pan.then((result) => {
-					if (result == "加入QQ群") open(
+					if (result == "加入QQ群") hx.env.openExternal(
 						"http://shang.qq.com/wpa/qunwpa?idkey=d5a082a270d591e1364a5107f408086ba4ced20da4597d1fa12486f989d7341a");
 				});
 			})
@@ -364,7 +373,7 @@ function setupVoicePackage() {
 
 //统一通知
 function showInformation(msg, title, buttons = []) {
-	if (!title) title = "编程伴侣";
+	if (!title) title = pluginName;
 	var str = '<span style="color:#3366ff">' + title + '</span><br>' + msg;
 	return hx.window.showInformationMessage(str, buttons);
 }
@@ -384,7 +393,7 @@ function showWifeTextBubble(str) {
 }
 
 function setStatusMsg(msg, autohide = 2000) {
-	hx.window.setStatusBarMessage('<span style="color:#3366ff">编程伴侣：</span>' + msg);
+	hx.window.setStatusBarMessage('<span style="color:#3366ff">'+pluginName+'：</span>' + msg);
 }
 
 function setupCommands() {
@@ -395,6 +404,40 @@ function setupCommands() {
 			report_str += item + " 总计：" + input_analysis[item].times + "<br>";
 		}
 		showInformation(report_str);
+	});
+	
+	let disposable2 = hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
+		var vpDir=path.posix.join(__dirname, "voicepackages");
+		var res = [] , files = fs.readdirSync(path.posix.join(__dirname, "voicepackages"));
+		files.forEach(function(file){
+			var pathname = vpDir+'/'+file
+			, stat = fs.lstatSync(pathname);
+			
+			if (stat.isDirectory()){
+				res.push({
+					label:file,
+					description:(file==voicePackageName?"使用中":"")
+				});
+			}
+		});
+		
+		const pickResult = hx.window.showQuickPick(res, {placeHolder: pluginName+'：切换彩虹屁语音包'});
+		pickResult.then(function(result) {
+			if (!result) {
+				return;
+			}
+			if(result.description==""){
+				pluginConfig.update("voicePackageName",result.label);
+			}
+		});
+	});
+	
+	let disposable3 = hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
+		showInformation("开发中，稍后更新");
+	});
+	
+	let disposable4 = hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
+		hx.env.openExternal("https://github.com/ezshine/live2d-model-collections");
 	});
 }
 
