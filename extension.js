@@ -1,6 +1,6 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.14
+版本：0.1.19
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -9,6 +9,8 @@
 */
 
 const hx = require("hbuilderx");
+const http = require('http');
+const unzip = require("unzip");
 
 const {
 	exec
@@ -22,7 +24,7 @@ const messenger = require('messenger');
 const server = messenger.createListener(32719);
 const client = messenger.createSpeaker(32718);
 
-const pluginName="编程伴侣";
+const pluginName = "编程伴侣";
 
 //监听HBuilder Node进程的退出事件，退出时通知live2dPlayer
 const process = require('process');
@@ -31,6 +33,7 @@ process.on('exit', (code) => {
 });
 
 let ostype;
+let resources_dir;
 
 let input_analysis;
 let coding_start;
@@ -43,7 +46,7 @@ let live2dPlayer;
 let lpPath;
 let lpModelData;
 //彩虹屁相关配参
-let disabledRainbowFart;
+let enabledRainbowFart;
 let inputDetectInterval;
 let voicePackageName;
 let vpPath;
@@ -55,9 +58,17 @@ let enabledDebug;
 function activate(context) {
 	//获得插件配置
 	pluginConfig = hx.workspace.getConfiguration("codinglover");
+	
+	//检查资源目录的配置，若无配置，则设为插件目录
+	resources_dir=pluginConfig.get("resourcesDirPath",__dirname) || __dirname;
+	if(resources_dir.trim()=="")resources_dir=__dirname;
+	
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
+	// enabledDebug=true;
 	openDebugChannel();
+	
+	//监听当插件配置更改时做出反应
 	let configurationChangeDisplose = hx.workspace.onDidChangeConfiguration(function(event) {
 		if (event.affectsConfiguration("codinglover.enabledDebug")) {
 			enabledDebug = pluginConfig.get("enabledDebug", false);
@@ -69,23 +80,34 @@ function activate(context) {
 			openWifeContainer();
 		} else if (event.affectsConfiguration("codinglover.live2dPackageName")) {
 			if (pluginConfig.get("live2dPackageName", "liang") != live2dPackageName) {
+				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
 				debugLog("live2dPackageName：" + live2dPackageName);
-				showInformation("更换老婆，请重启HBuilderX");
+				lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
+				if(wifeIsReady){
+					debugLog("通知老婆容器加载数据："+lpPath);
+				}else{
+					return debugLog("老婆容器未就绪");
+				}
+				client.shout("changeModel",{model:path.posix.join(lpPath, "model.json")});
 			}
-		} else if (event.affectsConfiguration("codinglover.disabledRainbowFart")) {
-			disabledRainbowFart = pluginConfig.get("disabledRainbowFart", false);
-			debugLog("disabledRainbowFart：" + disabledRainbowFart);
+		} else if (event.affectsConfiguration("codinglover.enabledRainbowFart")) {
+			enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
+			debugLog("enabledRainbowFart：" + enabledRainbowFart);
 		} else if (event.affectsConfiguration("codinglover.inputDetectIntervalName")) {
 			setInputDetectInterval();
 			debugLog("inputDetectInterval：" + inputDetectInterval);
 		} else if (event.affectsConfiguration("codinglover.voicePackageName")) {
 			if (pluginConfig.get("voicePackageName", "sharonring") != voicePackageName) {
-				voicePackageName = pluginConfig.get("voicePackageName", "default");
+				voicePackageName = pluginConfig.get("voicePackageName", "sharonring");
 				setupVoicePackage();
 			}
-		}
+		}else if (event.affectsConfiguration("codinglover.resourcesDirPath")) {
+			if (pluginConfig.get("resourcesDirPath") != resources_dir) {
+				showInformation("资源目录已更改，请重启HBuilderX");
+			}
+		} 
 	});
-	
+
 	debugLog("好戏开始了：" + Date.now());
 	ostype = os.type;
 	debugLog("当前系统为" + ostype);
@@ -102,30 +124,38 @@ function activate(context) {
 	live2dPackageName = pluginConfig.get("live2dPackageName", "sharonring") || "sharonring";
 
 	//调试使用的参数，发布前必须注释掉
-	enabledLive2d = true;
+
+	// enabledLive2d = true;
 	// enabledDebug = true;
-	// live2dPackageName="liang";
+	// live2dPackageName="ryunosuke";
 
 	//是否禁用彩虹屁
-	disabledRainbowFart = pluginConfig.get("disabledRainbowFart", false);
+	enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
 	//输入监测时间间隔
 	setInputDetectInterval();
-	
+
 	//语音包名称
-	voicePackageName = pluginConfig.get("voicePackageName", "default") || "default";
+	voicePackageName = pluginConfig.get("voicePackageName", "sharonring") || "sharonring";
 	//检查插件配置
+	debugLog("resourcesDirPath："+resources_dir);
 	debugLog("enabledDebug：" + enabledDebug);
 	debugLog("enabledLive2d：" + enabledLive2d);
 	debugLog("live2dPackageName：" + live2dPackageName);
-	debugLog("disabledRainbowFart：" + disabledRainbowFart);
+	debugLog("enabledRainbowFart：" + enabledRainbowFart);
 	debugLog("inputDetectInterval：" + inputDetectInterval);
 	debugLog("voicePackageName：" + voicePackageName);
 
 	//老婆数据路径
-	lpPath = path.posix.join(__dirname, "live2dpackages", live2dPackageName);
+	lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
+	
+	let accordCall=setTimeout(()=>{
+		client.shout("changeModel",{model:path.posix.join(lpPath, "model.json")});
+	},1000);
+	
 	server.on('wifeContainerReady', function(m, data) {
+		clearTimeout(accordCall);
 		debugLog("老婆容器已就绪，容器版本：" + data.v);
-
+		
 		if (!fs.existsSync(path.posix.join(lpPath, "model.json"))) {
 			debugLog("老婆数据包错误：" + path.posix.join(lpPath, "model.json"));
 			return;
@@ -166,13 +196,14 @@ function activate(context) {
 		});
 	});
 	//老婆容器路径
-	live2dPlayer = path.posix.join(__dirname, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe")).replace(/ /g, '\\ ');
+	live2dPlayer = path.posix.join(resources_dir, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe")).replace(
+		/ /g, '\\ ');
 
 	//启用老婆
 	openWifeContainer();
 
 	//根据当前系统是window还是macos选择默认的音频播放器
-	const mp3Player = (ostype == "Darwin" ? "afplay" : path.posix.join(__dirname, "players", "mp3player.exe"));
+	const mp3Player = (ostype == "Darwin" ? "afplay" : path.posix.join(resources_dir, "players", "mp3player.exe"));
 
 	//配置语音包
 	setupVoicePackage();
@@ -261,11 +292,14 @@ function activate(context) {
 
 		//命中以及和上次命中结果不一样时才播放，加入彩虹屁开关
 		if (voices.length != 0 && last_voice_mark != voice_mark) {
-			addInputAnalysis(voice_mark, now);
-
+			debugLog("命中关键词：" + voice_mark);
+			
+			//暂且禁用这个没卵用的功能
+			//addInputAnalysis(voice_mark, now);
+			
 			let voice_index = Math.floor(Math.random() * voices.length);
-			if (!disabledRainbowFart) {
-				debugLog("播放音频：" + voice_mark);
+			if (enabledRainbowFart) {
+				debugLog("即将播放音频：");
 				last_voice_mark = voice_mark;
 
 				//音频播放器命令路径，将空格转义
@@ -276,6 +310,8 @@ function activate(context) {
 				const cmd = playerpath + " " + audiopath;
 				debugLog(cmd);
 				exec(cmd);
+			}else{
+				debugLog("彩虹屁语音未启用");
 			}
 
 			if (wifeIsReady) {
@@ -297,11 +333,11 @@ function activate(context) {
 }
 
 //
-function setInputDetectInterval(){
+function setInputDetectInterval() {
 	let inputDetectIntervalName = pluginConfig.get("inputDetectIntervalName", "及时") || "及时";
-	if(inputDetectIntervalName=="瞬时")inputDetectInterval=500;
-	else if(inputDetectIntervalName=="及时")inputDetectInterval=1500;
-	else inputDetectInterval=5000;
+	if (inputDetectIntervalName == "瞬时") inputDetectInterval = 800;
+	else if (inputDetectIntervalName == "及时") inputDetectInterval = 2000;
+	else inputDetectInterval = 5000;
 }
 
 //统一调试
@@ -319,6 +355,55 @@ function debugLog(str) {
 		console.log(str);
 	}
 }
+
+//下载老婆容器
+function downloadWifeContainer() {
+	setStatusMsg("开始下载老婆容器");
+	debugLog("开始下载老婆容器");
+	
+	let file_name = (ostype == "Darwin" ? "mac" : "win") + ".zip";
+	let file_dest = path.posix.join(resources_dir, "players", file_name);
+	downloadFile("http://rfw.jnsii.com/downloads/" + file_name, file_dest, {
+		success: () => {
+			setStatusMsg("老婆容器已下载");
+			if (ostype == "Darwin") {
+				let download_pan = showInformation("下载已完成，您的系统无法自动解压缩，请手动解压后重启HBuilderX", "", [
+					"打开目录"
+				]);
+				download_pan.then((result) => {
+					hx.env.openExternal("file://" + path.posix.join(resources_dir, "players"));
+				});
+			} else {
+				setStatusMsg("正在解压缩...");
+				var extract = unzip.Extract({
+					path: path.posix.join(resources_dir, "players")
+				});
+				extract.on('finish', function() {
+					setStatusMsg("正在启动彩虹屁老婆");
+					openWifeContainer();
+				});
+				extract.on('error', function(err) {
+					debugLog(err);
+				});
+				fs.createReadStream(file_dest).pipe(extract);
+			}
+		},
+		progress: (bytesloaded, bytestotal) => {
+			setStatusMsg("老婆容器下载进度：" + (bytesloaded / bytestotal * 100).toFixed(2) + "%");
+		}
+	});
+}
+//手动安装提示
+function openQQGroupTips(){
+	let qun_pan = showInformation("加入QQ群:1059850921，获得更多帮助<br>", "", [
+		"加入QQ群",
+		"先不加"
+	]);
+	qun_pan.then((result) => {
+		if (result == "加入QQ群") hx.env.openExternal(
+			"http://shang.qq.com/wpa/qunwpa?idkey=d5a082a270d591e1364a5107f408086ba4ced20da4597d1fa12486f989d7341a");
+	});
+}
 //启动老婆容器
 function openWifeContainer() {
 	if (enabledLive2d) {
@@ -328,19 +413,20 @@ function openWifeContainer() {
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
-			let download_pan = showInformation("没有找到老婆容器：" + live2dPlayer + "<br>", "", [
-				"立即下载"
-			]);
+			let btns;
+			// if(ostype!="Darwin"){
+				btns=["立即下载", "手动安装"];
+			// }
+			// else btns=["手动安装"];
+			let download_pan = showInformation("没有找到老婆容器：" + live2dPlayer + "<br>", "", btns);
 			download_pan.then((result) => {
-				hx.env.openExternal("https://gitee.com/ezshine/live2dplayer/raw/master/released/" + (ostype == "Darwin" ? "mac" : "win") + ".7z");
-				let qun_pan = showInformation("加入QQ群可获得更多帮助<br>", "", [
-					"加入QQ群",
-					"先不加"
-				]);
-				qun_pan.then((result) => {
-					if (result == "加入QQ群") hx.env.openExternal(
-						"http://shang.qq.com/wpa/qunwpa?idkey=d5a082a270d591e1364a5107f408086ba4ced20da4597d1fa12486f989d7341a");
-				});
+				if (result == "立即下载") {
+					downloadWifeContainer();
+				} else if (result == "手动安装") {
+					hx.env.openExternal("https://gitee.com/ezshine/live2dplayer/raw/master/released/" + (ostype == "Darwin" ? "mac" :
+						"win") + ".7z");
+					openQQGroupTips();
+				}
 			})
 		}
 	} else {
@@ -353,7 +439,7 @@ function openWifeContainer() {
 //配置语音包
 function setupVoicePackage() {
 	//语音包路径
-	vpPath = path.posix.join(__dirname, "voicepackages", voicePackageName);
+	vpPath = path.posix.join(resources_dir, "voicepackages", voicePackageName);
 
 	//校验语音包
 	if (!fs.existsSync(vpPath)) {
@@ -393,12 +479,12 @@ function showWifeTextBubble(str) {
 }
 
 function setStatusMsg(msg, autohide = 2000) {
-	hx.window.setStatusBarMessage('<span style="color:#3366ff">'+pluginName+'：</span>' + msg);
+	hx.window.setStatusBarMessage('<span style="color:#3366ff">' + pluginName + '：</span>' + msg);
 }
 
 function setupCommands() {
 
-	let disposable = hx.commands.registerTextEditorCommand('extension.showCodingAnalysis', (editor) => {
+	let cmd_res1=hx.commands.registerTextEditorCommand('extension.showCodingAnalysis', (editor) => {
 		let report_str = "编程时长 " + (Date.now() - coding_start) / 1000 + "秒 <br>";
 		for (let item in input_analysis) {
 			report_str += item + " 总计：" + input_analysis[item].times + "<br>";
@@ -406,38 +492,78 @@ function setupCommands() {
 		showInformation(report_str);
 	});
 	
-	let disposable2 = hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
-		var vpDir=path.posix.join(__dirname, "voicepackages");
-		var res = [] , files = fs.readdirSync(path.posix.join(__dirname, "voicepackages"));
-		files.forEach(function(file){
-			var pathname = vpDir+'/'+file
-			, stat = fs.lstatSync(pathname);
-			
-			if (stat.isDirectory()){
+	let cmd_res2=hx.commands.registerTextEditorCommand('extension.codingloverEnabledLP', (editor) => {
+		pluginConfig.update("enabledLive2d", !enabledLive2d);
+	});
+	
+	let cmd_res3=hx.commands.registerTextEditorCommand('extension.codingloverEnabledVP', (editor) => {
+		pluginConfig.update("enabledRainbowFart", !enabledRainbowFart);
+	});
+
+	let cmd_res4=hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
+		var vpDir = path.posix.join(resources_dir, "voicepackages");
+		var res = [],files = fs.readdirSync(vpDir);
+		files.forEach(function(filename) {
+			var filepath = vpDir + '/' + filename,stat = fs.lstatSync(filepath);
+
+			if (stat.isDirectory()) {
 				res.push({
-					label:file,
-					description:(file==voicePackageName?"使用中":"")
+					label: filename,
+					description: (filename == voicePackageName ? "使用中" : "")
 				});
 			}
 		});
-		
-		const pickResult = hx.window.showQuickPick(res, {placeHolder: pluginName+'：切换彩虹屁语音包'});
+
+		const pickResult = hx.window.showQuickPick(res, {
+			placeHolder: pluginName + '：切换彩虹屁语音包'
+		});
 		pickResult.then(function(result) {
 			if (!result) {
 				return;
 			}
-			if(result.description==""){
-				pluginConfig.update("voicePackageName",result.label);
+			if (result.description == "") {
+				pluginConfig.update("voicePackageName", result.label);
 			}
 		});
 	});
-	
-	let disposable3 = hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
-		showInformation("开发中，稍后更新");
+
+	let cmd_res5=hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
+		var lpDir = path.posix.join(resources_dir, "live2dpackages");
+		var res = [],files = fs.readdirSync(lpDir);
+		files.forEach(function(filename) {
+			var filepath = lpDir + '/' + filename,stat = fs.lstatSync(filepath);
+		
+			if (stat.isDirectory()) {
+				res.push({
+					label: filename,
+					description: (filename == live2dPackageName ? "使用中" : "")
+				});
+			}
+		});
+		
+		const pickResult = hx.window.showQuickPick(res, {
+			placeHolder: pluginName + '：切换彩虹屁老婆'
+		});
+		pickResult.then(function(result) {
+			if (!result) {
+				return;
+			}
+			if (result.description == "") {
+				pluginConfig.update("live2dPackageName", result.label);
+			}
+		});
+	});
+
+	let cmd_res6=hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
+		hx.env.openExternal("https://rfw.jnsii.com");
 	});
 	
-	let disposable4 = hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
-		hx.env.openExternal("https://github.com/ezshine/live2d-model-collections");
+	let cmd_res7=hx.commands.registerTextEditorCommand('extension.codingloverEnabledDebug', (editor) => {
+		pluginConfig.update("enabledDebug", !enabledDebug);
+	});
+	
+	let cmd_res8=hx.commands.registerTextEditorCommand('extension.codingloverQQGroup', (editor) => {
+		openQQGroupTips();
 	});
 }
 
@@ -449,6 +575,48 @@ function addInputAnalysis(keyword, time) {
 			times: 1
 		};
 	}
+}
+
+function downloadFile(url, dest, callbacks) {
+	if (!callbacks) callbacks = {};
+
+	if (fs.existsSync(dest)) {
+		debugLog(dest + "已存在");
+		if (callbacks.success) callbacks.success();
+		return;
+	}
+
+	debugLog("准备将" + url + "下载至" + dest);
+	const file = fs.createWriteStream(dest);
+
+	http.get(url, (res) => {
+		if (res.statusCode !== 200) {
+			if (callbacks.fail) callbacks.fail(res);
+			return;
+		}
+
+		const bytestotal = parseInt(res.headers['content-length'], 10);
+		let bytesloaded = 0;
+		debugLog("文件大小：" + bytestotal);
+
+		res.on('end', () => {
+			if (callbacks.success) callbacks.success();
+		});
+		res.on('data', (data) => {
+			const data_len = parseInt(data.length, 10);
+			bytesloaded += data_len;
+			debugLog("已下载大小：" + bytesloaded);
+			if (callbacks.progress) callbacks.progress(bytesloaded, bytestotal);
+		});
+
+		file.on('finish', () => {
+			file.close();
+		}).on('error', (err) => {
+			fs.unlink(dest);
+		});
+
+		res.pipe(file);
+	});
 }
 
 //该方法将在插件禁用的时候调用（目前是在插件卸载的时候触发）

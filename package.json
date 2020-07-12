@@ -2,10 +2,10 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）",
-	"version": "0.1.14",
+	"version": "0.1.19",
 	"publisher": "ezshine",
 	"engines": {
-		"HBuilderX": "^2.7.0"
+		"HBuilderX": "^2.7.14"
 	},
 	"categories": [
 		"Other"
@@ -20,10 +20,10 @@
 					"default": false,
 					"description": "开启调试模式"
 				},
-				"codinglover.disabledRainbowFart": {
+				"codinglover.enabledRainbowFart": {
 					"type": "boolean",
-					"default": false,
-					"description": "禁用语音彩虹屁"
+					"default": true,
+					"description": "启用彩虹屁语音"
 				},
 				"codinglover.voicePackageName": {
 					"type": "string",
@@ -34,7 +34,7 @@
 					"type": "string",
 					"default": "及时",
 					"description": "彩虹屁语音触发",
-					"enum":[
+					"enum": [
 						"瞬时",
 						"及时",
 						"延时"
@@ -49,6 +49,11 @@
 					"type": "string",
 					"default": "liang",
 					"description": "老婆模型名称"
+				},
+				"codinglover.resourcesDirPath": {
+					"type": "string",
+					"default": "",
+					"description": "资源目录位置（如果你不知道这能干嘛，就留空）"
 				}
 			}
 		},
@@ -62,45 +67,79 @@
 				"title": "切换语音包"
 			},
 			{
+				"command": "extension.codingloverEnabledVP",
+				"title": "启用彩虹屁语音"
+			},
+			{
+				"command":"extension.codingloverEnabledLP",
+				"title":"启用彩虹屁老婆"
+			},
+			{
 				"command": "extension.codingloverPickLP",
 				"title": "切换老婆模型"
 			},
 			{
 				"command": "extension.codingloverDownloadLP",
-				"title": "下载更多老婆模型"
+				"title": "更多老婆模型"
+			},
+			{
+				"command": "extension.codingloverEnabledDebug",
+				"title": "启用调试模式"
+			}
+			,
+			{
+				"command": "extension.codingloverQQGroup",
+				"title": "插件交流QQ群"
 			}
 		],
 		"menus": {
-			"editor/context": [
-				{
-					"command": "extension.showCodingAnalysis",
-					"group": "z_commands",
-					"when": "editorTextFocus"
-				},
-				{
-					"group": "z_commands"
-				}
-			],
 			"menubar/tool": [
 				{
 					"group": "z_commands"
 				},
 				{
-					"id":"codinglover",
-					"title":"编程伴侣",
-					"group": "z_commands"
+					"id": "codinglover",
+					"title": "编程伴侣"
+				},
+				{
+					"command": "extension.codingloverEnabledVP",
+					"group": "codinglover@1",
+					"checked":"config.codinglover.enabledRainbowFart==1"
 				},
 				{
 					"command": "extension.codingloverPickVP",
-					"group": "codinglover@1"
-				},
-				{
-					"command": "extension.codingloverPickLP",
 					"group": "codinglover@2"
 				},
 				{
-					"command": "extension.codingloverDownloadLP",
 					"group": "codinglover@3"
+				},
+				{
+					"command": "extension.codingloverEnabledLP",
+					"group": "codinglover@3",
+					"checked":"config.codinglover.enabledLive2d==1"
+				},
+				{
+					"command": "extension.codingloverPickLP",
+					"group": "codinglover@4"
+				},
+				{
+					"command": "extension.codingloverDownloadLP",
+					"group": "codinglover@5"
+				},
+				{
+					"group": "codinglover@6"
+				},
+				{
+					"command": "extension.codingloverEnabledDebug",
+					"group": "codinglover@7",
+					"checked":"config.codinglover.enabledDebug==1"
+				},
+				{
+					"group": "codinglover@8"
+				},
+				{
+					"command": "extension.codingloverQQGroup",
+					"group": "codinglover@9"
 				}
 			]
 		}
@@ -109,6 +148,7 @@
 		"plugin-manager"
 	],
 	"dependencies": {
-		"messenger": "0.0.9"
+		"messenger": "0.0.9",
+		"unzip": "^0.1.11"
 	}
 }
