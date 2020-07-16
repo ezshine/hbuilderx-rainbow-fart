@@ -2,10 +2,10 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）",
-	"version": "0.1.19",
+	"version": "0.1.23",
 	"publisher": "ezshine",
 	"engines": {
-		"HBuilderX": "^2.7.14"
+		"HBuilderX": "^2.7.9"
 	},
 	"categories": [
 		"Other"
@@ -108,38 +108,38 @@
 				},
 				{
 					"command": "extension.codingloverPickVP",
-					"group": "codinglover@2"
-				},
-				{
 					"group": "codinglover@3"
 				},
 				{
+					"group": "codinglover@4"
+				},
+				{
 					"command": "extension.codingloverEnabledLP",
-					"group": "codinglover@3",
+					"group": "codinglover@5",
 					"checked":"config.codinglover.enabledLive2d==1"
 				},
 				{
 					"command": "extension.codingloverPickLP",
-					"group": "codinglover@4"
-				},
-				{
-					"command": "extension.codingloverDownloadLP",
-					"group": "codinglover@5"
-				},
-				{
 					"group": "codinglover@6"
 				},
 				{
-					"command": "extension.codingloverEnabledDebug",
-					"group": "codinglover@7",
-					"checked":"config.codinglover.enabledDebug==1"
+					"command": "extension.codingloverDownloadLP",
+					"group": "codinglover@7"
 				},
 				{
 					"group": "codinglover@8"
 				},
 				{
+					"command": "extension.codingloverEnabledDebug",
+					"group": "codinglover@9",
+					"checked":"config.codinglover.enabledDebug==1"
+				},
+				{
+					"group": "codinglover@10"
+				},
+				{
 					"command": "extension.codingloverQQGroup",
-					"group": "codinglover@9"
+					"group": "codinglover@11"
 				}
 			]
 		}

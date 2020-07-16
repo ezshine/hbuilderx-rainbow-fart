@@ -1,6 +1,6 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.19
+版本：0.1.23
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -122,12 +122,6 @@ function activate(context) {
 	enabledLive2d = pluginConfig.get("enabledLive2d", false);
 	//虚拟老婆名称
 	live2dPackageName = pluginConfig.get("live2dPackageName", "sharonring") || "sharonring";
-
-	//调试使用的参数，发布前必须注释掉
-
-	// enabledLive2d = true;
-	// enabledDebug = true;
-	// live2dPackageName="ryunosuke";
 
 	//是否禁用彩虹屁
 	enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
@@ -409,7 +403,7 @@ function openWifeContainer() {
 	if (enabledLive2d) {
 		//如果老婆容器存在
 		if (fs.existsSync(live2dPlayer)) {
-			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer;
+			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer+"";
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
