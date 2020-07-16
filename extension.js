@@ -38,6 +38,7 @@ let resources_dir;
 let input_analysis;
 let coding_start;
 let pluginConfig;
+let versions;
 //虚拟老婆相关配参
 let enabledLive2d;
 let live2dPackageName;
@@ -58,16 +59,16 @@ let enabledDebug;
 function activate(context) {
 	//获得插件配置
 	pluginConfig = hx.workspace.getConfiguration("codinglover");
-	
+
 	//检查资源目录的配置，若无配置，则设为插件目录
-	resources_dir=pluginConfig.get("resourcesDirPath",__dirname) || __dirname;
-	if(resources_dir.trim()=="")resources_dir=__dirname;
-	
+	resources_dir = pluginConfig.get("resourcesDirPath", __dirname) || __dirname;
+	if (resources_dir.trim() == "") resources_dir = __dirname;
+
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
 	// enabledDebug=true;
 	openDebugChannel();
-	
+
 	//监听当插件配置更改时做出反应
 	let configurationChangeDisplose = hx.workspace.onDidChangeConfiguration(function(event) {
 		if (event.affectsConfiguration("codinglover.enabledDebug")) {
@@ -83,12 +84,14 @@ function activate(context) {
 				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
 				debugLog("live2dPackageName：" + live2dPackageName);
 				lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
-				if(wifeIsReady){
-					debugLog("通知老婆容器加载数据："+lpPath);
-				}else{
+				if (wifeIsReady) {
+					debugLog("通知老婆容器加载数据：" + lpPath);
+				} else {
 					return debugLog("老婆容器未就绪");
 				}
-				client.shout("changeModel",{model:path.posix.join(lpPath, "model.json")});
+				client.shout("changeModel", {
+					model: path.posix.join(lpPath, "model.json")
+				});
 			}
 		} else if (event.affectsConfiguration("codinglover.enabledRainbowFart")) {
 			enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
@@ -101,11 +104,11 @@ function activate(context) {
 				voicePackageName = pluginConfig.get("voicePackageName", "sharonring");
 				setupVoicePackage();
 			}
-		}else if (event.affectsConfiguration("codinglover.resourcesDirPath")) {
+		} else if (event.affectsConfiguration("codinglover.resourcesDirPath")) {
 			if (pluginConfig.get("resourcesDirPath") != resources_dir) {
 				showInformation("资源目录已更改，请重启HBuilderX");
 			}
-		} 
+		}
 	});
 
 	debugLog("好戏开始了：" + Date.now());
@@ -131,7 +134,7 @@ function activate(context) {
 	//语音包名称
 	voicePackageName = pluginConfig.get("voicePackageName", "sharonring") || "sharonring";
 	//检查插件配置
-	debugLog("resourcesDirPath："+resources_dir);
+	debugLog("resourcesDirPath：" + resources_dir);
 	debugLog("enabledDebug：" + enabledDebug);
 	debugLog("enabledLive2d：" + enabledLive2d);
 	debugLog("live2dPackageName：" + live2dPackageName);
@@ -141,15 +144,17 @@ function activate(context) {
 
 	//老婆数据路径
 	lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
-	
-	let accordCall=setTimeout(()=>{
-		client.shout("changeModel",{model:path.posix.join(lpPath, "model.json")});
-	},1000);
-	
+
+	let accordCall = setTimeout(() => {
+		client.shout("changeModel", {
+			model: path.posix.join(lpPath, "model.json")
+		});
+	}, 1000);
+
 	server.on('wifeContainerReady', function(m, data) {
 		clearTimeout(accordCall);
 		debugLog("老婆容器已就绪，容器版本：" + data.v);
-		
+
 		if (!fs.existsSync(path.posix.join(lpPath, "model.json"))) {
 			debugLog("老婆数据包错误：" + path.posix.join(lpPath, "model.json"));
 			return;
@@ -187,6 +192,21 @@ function activate(context) {
 
 		server.on("wifeContainerLog", function(m, data) {
 			debugLog("来自老婆容器：" + ((typeof data == "object") ? JSON.stringify(data) : data));
+		});
+
+
+		checkUpdate("live2dplayer", data.v, function(need) {
+			if (need) {
+				debugLog("老婆容器有新版本：" + versions.live2dplayer);
+				let btns = ["立即更新", "暂不更新"];
+				let download_pan = showInformation("老婆容器有更新：" + versions.live2dplayer + "<br>", "", btns);
+				download_pan.then((result) => {
+					if (result == "立即更新") {
+						client.shout('hbuilderExit');
+						setTimeout(downloadWifeContainer, 1000);
+					}
+				});
+			}
 		});
 	});
 	//老婆容器路径
@@ -287,10 +307,10 @@ function activate(context) {
 		//命中以及和上次命中结果不一样时才播放，加入彩虹屁开关
 		if (voices.length != 0 && last_voice_mark != voice_mark) {
 			debugLog("命中关键词：" + voice_mark);
-			
+
 			//暂且禁用这个没卵用的功能
 			//addInputAnalysis(voice_mark, now);
-			
+
 			let voice_index = Math.floor(Math.random() * voices.length);
 			if (enabledRainbowFart) {
 				debugLog("即将播放音频：");
@@ -304,7 +324,7 @@ function activate(context) {
 				const cmd = playerpath + " " + audiopath;
 				debugLog(cmd);
 				exec(cmd);
-			}else{
+			} else {
 				debugLog("彩虹屁语音未启用");
 			}
 
@@ -324,6 +344,61 @@ function activate(context) {
 			}
 		}
 	}
+}
+
+//检查版本更新
+function needUpdate(currVer, promoteVer) {
+	currVer = currVer ? currVer.replace(/[vV]/, "") : "0.0.0";
+	promoteVer = promoteVer ? promoteVer.replace(/[vV]/, "") : "0.0.0";
+	if (currVer == promoteVer) return false;
+	var currVerArr = currVer.split(".");
+	var promoteVerArr = promoteVer.split(".");
+	var len = Math.max(currVerArr.length, promoteVerArr.length);
+	for (var i = 0; i < len; i++) {
+		var proVal = ~~promoteVerArr[i],
+			curVal = ~~currVerArr[i];
+		if (proVal > curVal) {
+			return true;
+		}
+	}
+	return false;
+};
+async function checkUpdate(type, vn, callbacks) {
+	if (!versions) {
+		debugLog("从服务端获取...");
+		versions = await doGet("http://rfw.jnsii.com/api/checkupdate.php");
+	}
+	debugLog("最新版本信息：");
+	debugLog(versions);
+
+	if (callbacks) callbacks(needUpdate(vn, versions[type]));
+}
+
+//http request
+function doGet(url) {
+	return new Promise((resolve, reject) => {
+		http.get(url, (res) => {
+			if (res.statusCode !== 200) {
+				debugLog("请求失败");
+				reject();
+				return;
+			}
+
+			let rawData = '';
+			res.on('data', (chunk) => {
+				rawData += chunk;
+			});
+			res.on('end', () => {
+				try {
+					let parsedData = JSON.parse(rawData);
+					resolve(parsedData);
+				} catch (e) {
+					debugLog(e.message);
+					reject(e);
+				}
+			});
+		});
+	});
 }
 
 //
@@ -354,9 +429,12 @@ function debugLog(str) {
 function downloadWifeContainer() {
 	setStatusMsg("开始下载老婆容器");
 	debugLog("开始下载老婆容器");
-	
+
 	let file_name = (ostype == "Darwin" ? "mac" : "win") + ".zip";
 	let file_dest = path.posix.join(resources_dir, "players", file_name);
+
+	if (fs.existsSync(file_dest)) fs.unlinkSync(file_dest);
+
 	downloadFile("http://rfw.jnsii.com/downloads/" + file_name, file_dest, {
 		success: () => {
 			setStatusMsg("老婆容器已下载");
@@ -388,7 +466,7 @@ function downloadWifeContainer() {
 	});
 }
 //手动安装提示
-function openQQGroupTips(){
+function openQQGroupTips() {
 	let qun_pan = showInformation("加入QQ群:1059850921，获得更多帮助<br>", "", [
 		"加入QQ群",
 		"先不加"
@@ -403,22 +481,17 @@ function openWifeContainer() {
 	if (enabledLive2d) {
 		//如果老婆容器存在
 		if (fs.existsSync(live2dPlayer)) {
-			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer+"";
+			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer + "";
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
-			let btns;
-			// if(ostype!="Darwin"){
-				btns=["立即下载", "手动安装"];
-			// }
-			// else btns=["手动安装"];
+			let btns = ["立即下载", "手动安装"];
 			let download_pan = showInformation("没有找到老婆容器：" + live2dPlayer + "<br>", "", btns);
 			download_pan.then((result) => {
 				if (result == "立即下载") {
 					downloadWifeContainer();
 				} else if (result == "手动安装") {
-					hx.env.openExternal("https://gitee.com/ezshine/live2dplayer/raw/master/released/" + (ostype == "Darwin" ? "mac" :
-						"win") + ".7z");
+					hx.env.openExternal("https://gitee.com/ezshine/rainbow-fart-waifu/releases");
 					openQQGroupTips();
 				}
 			})
@@ -444,8 +517,6 @@ function setupVoicePackage() {
 		debugLog('已启用语音包' + voicePackageName);
 	}
 
-	//语音包信息
-	// const vpInfo = JSON.parse(fs.readFileSync(vpPath + "manifest.json"));
 	//语音包配置表
 	vpContributes = JSON.parse(fs.readFileSync(path.posix.join(vpPath, "contributes.json"))).contributes;
 	debugLog(vpContributes);
@@ -478,27 +549,29 @@ function setStatusMsg(msg, autohide = 2000) {
 
 function setupCommands() {
 
-	let cmd_res1=hx.commands.registerTextEditorCommand('extension.showCodingAnalysis', (editor) => {
+	let cmd_res1 = hx.commands.registerTextEditorCommand('extension.showCodingAnalysis', (editor) => {
 		let report_str = "编程时长 " + (Date.now() - coding_start) / 1000 + "秒 <br>";
 		for (let item in input_analysis) {
 			report_str += item + " 总计：" + input_analysis[item].times + "<br>";
 		}
 		showInformation(report_str);
 	});
-	
-	let cmd_res2=hx.commands.registerTextEditorCommand('extension.codingloverEnabledLP', (editor) => {
+
+	let cmd_res2 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledLP', (editor) => {
 		pluginConfig.update("enabledLive2d", !enabledLive2d);
 	});
-	
-	let cmd_res3=hx.commands.registerTextEditorCommand('extension.codingloverEnabledVP', (editor) => {
+
+	let cmd_res3 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledVP', (editor) => {
 		pluginConfig.update("enabledRainbowFart", !enabledRainbowFart);
 	});
 
-	let cmd_res4=hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
+	let cmd_res4 = hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
 		var vpDir = path.posix.join(resources_dir, "voicepackages");
-		var res = [],files = fs.readdirSync(vpDir);
+		var res = [],
+			files = fs.readdirSync(vpDir);
 		files.forEach(function(filename) {
-			var filepath = vpDir + '/' + filename,stat = fs.lstatSync(filepath);
+			var filepath = path.posix.join(vpDir, filename),
+				stat = fs.lstatSync(filepath);
 
 			if (stat.isDirectory()) {
 				res.push({
@@ -521,12 +594,14 @@ function setupCommands() {
 		});
 	});
 
-	let cmd_res5=hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
+	let cmd_res5 = hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
 		var lpDir = path.posix.join(resources_dir, "live2dpackages");
-		var res = [],files = fs.readdirSync(lpDir);
+		var res = [],
+			files = fs.readdirSync(lpDir);
 		files.forEach(function(filename) {
-			var filepath = lpDir + '/' + filename,stat = fs.lstatSync(filepath);
-		
+			var filepath = path.posix.join(lpDir, filename),
+				stat = fs.lstatSync(filepath);
+
 			if (stat.isDirectory()) {
 				res.push({
 					label: filename,
@@ -534,7 +609,7 @@ function setupCommands() {
 				});
 			}
 		});
-		
+
 		const pickResult = hx.window.showQuickPick(res, {
 			placeHolder: pluginName + '：切换彩虹屁老婆'
 		});
@@ -548,15 +623,15 @@ function setupCommands() {
 		});
 	});
 
-	let cmd_res6=hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
+	let cmd_res6 = hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
 		hx.env.openExternal("https://rfw.jnsii.com");
 	});
-	
-	let cmd_res7=hx.commands.registerTextEditorCommand('extension.codingloverEnabledDebug', (editor) => {
+
+	let cmd_res7 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledDebug', (editor) => {
 		pluginConfig.update("enabledDebug", !enabledDebug);
 	});
-	
-	let cmd_res8=hx.commands.registerTextEditorCommand('extension.codingloverQQGroup', (editor) => {
+
+	let cmd_res8 = hx.commands.registerTextEditorCommand('extension.codingloverQQGroup', (editor) => {
 		openQQGroupTips();
 	});
 }
