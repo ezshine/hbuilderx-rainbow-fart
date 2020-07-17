@@ -1,6 +1,5 @@
 /*
 编程伴侣（HBuilderX插件）
-版本：0.1.23
 作者：ezshine
 
 此插件的创意来源是VSCode的彩虹屁插件(感谢感谢)，兼容彩虹屁插件的语音包。
@@ -60,9 +59,7 @@ function activate(context) {
 	//获得插件配置
 	pluginConfig = hx.workspace.getConfiguration("codinglover");
 
-	//检查资源目录的配置，若无配置，则设为插件目录
-	resources_dir = pluginConfig.get("resourcesDirPath", __dirname) || __dirname;
-	if (resources_dir.trim() == "") resources_dir = __dirname;
+	resources_dir = __dirname;
 
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
