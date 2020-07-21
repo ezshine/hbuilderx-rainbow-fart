@@ -60,6 +60,10 @@ function activate(context) {
 	pluginConfig = hx.workspace.getConfiguration("codinglover");
 
 	resources_dir = __dirname;
+	
+	if(resources_dir.indexOf(" ")>=0){
+		showInformation("插件资源路径中有空格，将无法正常使用本插件");
+	}
 
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
@@ -181,6 +185,11 @@ function activate(context) {
 					text: "愿梦里没有bug",
 					voice: path.posix.join(vpPath, "time_midnight_1.mp3")
 				},
+				{
+					motionfile: "mtn/aoba_live2D_32.mtn",
+					text: "你累不累呀？要不休息一下吧",
+					voice: path.posix.join(vpPath, "time_each_hour_2.mp3")
+				}
 			],
 			sendlog: enabledDebug
 		});
@@ -190,7 +199,6 @@ function activate(context) {
 		server.on("wifeContainerLog", function(m, data) {
 			debugLog("来自老婆容器：" + ((typeof data == "object") ? JSON.stringify(data) : data));
 		});
-
 
 		checkUpdate("live2dplayer", data.v, function(need) {
 			if (need) {
