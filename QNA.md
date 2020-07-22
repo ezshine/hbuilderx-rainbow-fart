@@ -52,7 +52,7 @@
 
 #### 问：如何添加更多彩虹屁老婆模型？
 ~~~~
-答：首先要[下载老婆模型](https://github.com/ezshine/live2d-model-collections)，然后解压缩至 "插件目录/ezshine-codinglover/live2dpackages" 目录下。解压缩后请根据默认老婆模型文件夹确认一下文件夹层级。
+答：加入QQ群：1059850921。
 ~~~~
 
 #### 如果以上问答还无法解决您的问题
