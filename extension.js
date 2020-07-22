@@ -55,66 +55,25 @@ let vpContributes
 let outputChannel;
 let enabledDebug;
 //该方法将在插件激活的时候调用
-function activate(context) {
+async function activate(context) {
 	//获得插件配置
 	pluginConfig = hx.workspace.getConfiguration("codinglover");
-
-	resources_dir = __dirname;
-	
-	if(resources_dir.indexOf(" ")>=0){
-		showInformation("插件资源路径中有空格，将无法正常使用本插件");
-	}
-
 	//是否开启调试模式
 	enabledDebug = pluginConfig.get("enabledDebug", false);
 	// enabledDebug=true;
 	openDebugChannel();
 
-	//监听当插件配置更改时做出反应
-	let configurationChangeDisplose = hx.workspace.onDidChangeConfiguration(function(event) {
-		if (event.affectsConfiguration("codinglover.enabledDebug")) {
-			enabledDebug = pluginConfig.get("enabledDebug", false);
-			openDebugChannel();
-			debugLog("enabledDebug：" + enabledDebug);
-		} else if (event.affectsConfiguration("codinglover.enabledLive2d")) {
-			enabledLive2d = pluginConfig.get("enabledLive2d", false);
-			debugLog("enabledLive2d：" + enabledLive2d);
-			openWifeContainer();
-		} else if (event.affectsConfiguration("codinglover.live2dPackageName")) {
-			if (pluginConfig.get("live2dPackageName", "liang") != live2dPackageName) {
-				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
-				debugLog("live2dPackageName：" + live2dPackageName);
-				lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
-				if (wifeIsReady) {
-					debugLog("通知老婆容器加载数据：" + lpPath);
-				} else {
-					return debugLog("老婆容器未就绪");
-				}
-				client.shout("changeModel", {
-					model: path.posix.join(lpPath, "model.json")
-				});
-			}
-		} else if (event.affectsConfiguration("codinglover.enabledRainbowFart")) {
-			enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
-			debugLog("enabledRainbowFart：" + enabledRainbowFart);
-		} else if (event.affectsConfiguration("codinglover.inputDetectIntervalName")) {
-			setInputDetectInterval();
-			debugLog("inputDetectInterval：" + inputDetectInterval);
-		} else if (event.affectsConfiguration("codinglover.voicePackageName")) {
-			if (pluginConfig.get("voicePackageName", "sharonring") != voicePackageName) {
-				voicePackageName = pluginConfig.get("voicePackageName", "sharonring");
-				setupVoicePackage();
-			}
-		} else if (event.affectsConfiguration("codinglover.resourcesDirPath")) {
-			if (pluginConfig.get("resourcesDirPath") != resources_dir) {
-				showInformation("资源目录已更改，请重启HBuilderX");
-			}
-		}
-	});
-
 	debugLog("好戏开始了：" + Date.now());
 	ostype = os.type;
 	debugLog("当前系统为" + ostype);
+
+	resources_dir = path.posix.join(hx.env.appData, "ezshine-codinglover");
+	if (!fs.existsSync(resources_dir)) {
+		setStatusMsg("插件资源初始化...");
+		await extractZipFile(path.posix.join(__dirname, "resources.zip"), resources_dir).then(() => {
+			setStatusMsg("初始化成功");
+		});
+	}
 
 	//初始化命中历史
 	coding_start = Date.now();
@@ -122,6 +81,9 @@ function activate(context) {
 
 	//注册命令
 	setupCommands();
+	//监听插件配置更改行为
+	watchconfigurationChange();
+
 	//是否开启虚拟老婆
 	enabledLive2d = pluginConfig.get("enabledLive2d", false);
 	//虚拟老婆名称
@@ -204,19 +166,18 @@ function activate(context) {
 			if (need) {
 				debugLog("老婆容器有新版本：" + versions.live2dplayer);
 				let btns = ["立即更新", "暂不更新"];
-				let download_pan = showInformation("老婆容器有更新：" + versions.live2dplayer + "<br>", "", btns);
+				let download_pan = showInformation("老婆容器有更新：" + versions.live2dplayer, "", btns);
 				download_pan.then((result) => {
 					if (result == "立即更新") {
 						client.shout('hbuilderExit');
-						setTimeout(downloadWifeContainer, 1000);
+						downloadWifeContainer();
 					}
 				});
 			}
 		});
 	});
 	//老婆容器路径
-	live2dPlayer = path.posix.join(resources_dir, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe")).replace(
-		/ /g, '\\ ');
+	live2dPlayer = path.posix.join(resources_dir, "players", "live2dplayer." + (ostype == "Darwin" ? "app" : "exe"));
 
 	//启用老婆
 	openWifeContainer();
@@ -322,11 +283,10 @@ function activate(context) {
 				last_voice_mark = voice_mark;
 
 				//音频播放器命令路径，将空格转义
-				let playerpath = mp3Player.replace(/ /g, '\\ ');
+				let playerpath = mp3Player;
 				let audiopath = path.posix.join(vpPath, voices[voice_index]);
-				audiopath = audiopath.replace(/ /g, '\\ ');
 
-				const cmd = playerpath + " " + audiopath;
+				const cmd = '"' + playerpath + '" "' + audiopath + '"';
 				debugLog(cmd);
 				exec(cmd);
 			} else {
@@ -414,6 +374,50 @@ function setInputDetectInterval() {
 	else inputDetectInterval = 5000;
 }
 
+//监听当插件配置更改时做出反应
+function watchconfigurationChange() {
+	let configurationChangeDisplose = hx.workspace.onDidChangeConfiguration(function(event) {
+		if (event.affectsConfiguration("codinglover.enabledDebug")) {
+			enabledDebug = pluginConfig.get("enabledDebug", false);
+			openDebugChannel();
+			debugLog("enabledDebug：" + enabledDebug);
+		} else if (event.affectsConfiguration("codinglover.enabledLive2d")) {
+			enabledLive2d = pluginConfig.get("enabledLive2d", false);
+			debugLog("enabledLive2d：" + enabledLive2d);
+			openWifeContainer();
+		} else if (event.affectsConfiguration("codinglover.live2dPackageName")) {
+			if (pluginConfig.get("live2dPackageName", "liang") != live2dPackageName) {
+				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
+				debugLog("live2dPackageName：" + live2dPackageName);
+				lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
+				if (wifeIsReady) {
+					debugLog("通知老婆容器加载数据：" + lpPath);
+				} else {
+					return debugLog("老婆容器未就绪");
+				}
+				client.shout("changeModel", {
+					model: path.posix.join(lpPath, "model.json")
+				});
+			}
+		} else if (event.affectsConfiguration("codinglover.enabledRainbowFart")) {
+			enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
+			debugLog("enabledRainbowFart：" + enabledRainbowFart);
+		} else if (event.affectsConfiguration("codinglover.inputDetectIntervalName")) {
+			setInputDetectInterval();
+			debugLog("inputDetectInterval：" + inputDetectInterval);
+		} else if (event.affectsConfiguration("codinglover.voicePackageName")) {
+			if (pluginConfig.get("voicePackageName", "sharonring") != voicePackageName) {
+				voicePackageName = pluginConfig.get("voicePackageName", "sharonring");
+				setupVoicePackage();
+			}
+		} else if (event.affectsConfiguration("codinglover.resourcesDirPath")) {
+			if (pluginConfig.get("resourcesDirPath") != resources_dir) {
+				showInformation("资源目录已更改，请重启HBuilderX");
+			}
+		}
+	});
+}
+
 //统一调试
 function openDebugChannel() {
 	if (enabledDebug) {
@@ -430,6 +434,22 @@ function debugLog(str) {
 	}
 }
 
+//通用解压缩
+function extractZipFile(filepath, destpath) {
+	return new Promise((resolve, reject) => {
+		var extract = unzip.Extract({
+			path: destpath
+		});
+		extract.on('finish', function() {
+			resolve();
+		});
+		extract.on('error', function(err) {
+			debugLog(err);
+			reject();
+		});
+		fs.createReadStream(filepath).pipe(extract);
+	});
+}
 //下载老婆容器
 function downloadWifeContainer() {
 	setStatusMsg("开始下载老婆容器");
@@ -444,25 +464,20 @@ function downloadWifeContainer() {
 		success: () => {
 			setStatusMsg("老婆容器已下载");
 			if (ostype == "Darwin") {
-				let download_pan = showInformation("下载已完成，您的系统无法自动解压缩，请手动解压后重启HBuilderX", "", [
-					"打开目录"
+				let download_pan = showInformation("下载已完成，您的系统无法自动解压缩，请手动解压后双击live2dplayer启动", "", [
+					"手动解压"
 				]);
 				download_pan.then((result) => {
-					hx.env.openExternal("file://" + path.posix.join(resources_dir, "players"));
+					let openpath = path.posix.join("file:", resources_dir, "players");
+					console.log("打开文件夹：", openpath);
+					hx.env.openExternal(openpath);
 				});
 			} else {
 				setStatusMsg("正在解压缩...");
-				var extract = unzip.Extract({
-					path: path.posix.join(resources_dir, "players")
-				});
-				extract.on('finish', function() {
+				extractZipFile(file_dest, path.posix.join(resources_dir, "players")).then(() => {
 					setStatusMsg("正在启动彩虹屁老婆");
 					openWifeContainer();
 				});
-				extract.on('error', function(err) {
-					debugLog(err);
-				});
-				fs.createReadStream(file_dest).pipe(extract);
 			}
 		},
 		progress: (bytesloaded, bytestotal) => {
@@ -472,7 +487,7 @@ function downloadWifeContainer() {
 }
 //手动安装提示
 function openQQGroupTips() {
-	let qun_pan = showInformation("加入QQ群:1059850921，获得更多帮助<br>", "", [
+	let qun_pan = showInformation("加入QQ群:1059850921，可在群里交流、求助、下载更多二次元老婆模型。", "", [
 		"加入QQ群",
 		"先不加"
 	]);
@@ -486,18 +501,14 @@ function openWifeContainer() {
 	if (enabledLive2d) {
 		//如果老婆容器存在
 		if (fs.existsSync(live2dPlayer)) {
-			let cmd = (ostype == "Darwin" ? "open" : "start") + " " + live2dPlayer + "";
+			let cmd = (ostype == 'Darwin' ? 'open ' : 'start "" ') + '"' + live2dPlayer + '"';
 			debugLog("执行唤醒老婆容器的命令：" + cmd);
 			exec(cmd);
 		} else {
-			let btns = ["立即下载", "手动安装"];
-			let download_pan = showInformation("没有找到老婆容器：" + live2dPlayer + "<br>", "", btns);
+			let download_pan = showInformation("需要下载老婆容器，请保持下载过程中网络的通畅哟。", "", ["立即下载"]);
 			download_pan.then((result) => {
 				if (result == "立即下载") {
 					downloadWifeContainer();
-				} else if (result == "手动安装") {
-					hx.env.openExternal("https://gitee.com/ezshine/rainbow-fart-waifu/releases");
-					openQQGroupTips();
 				}
 			})
 		}
@@ -530,7 +541,7 @@ function setupVoicePackage() {
 //统一通知
 function showInformation(msg, title, buttons = []) {
 	if (!title) title = pluginName;
-	var str = '<span style="color:#3366ff">' + title + '</span><br>' + msg;
+	var str = '<span style="color:#3366ff">' + title + '</span><br>' + msg + '<br>';
 	return hx.window.showInformationMessage(str, buttons);
 }
 
@@ -629,16 +640,47 @@ function setupCommands() {
 	});
 
 	let cmd_res6 = hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
-		hx.env.openExternal("https://rfw.jnsii.com");
+		openQQGroupTips();
 	});
 
 	let cmd_res7 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledDebug', (editor) => {
 		pluginConfig.update("enabledDebug", !enabledDebug);
 	});
 
-	let cmd_res8 = hx.commands.registerTextEditorCommand('extension.codingloverQQGroup', (editor) => {
-		openQQGroupTips();
+	let cmd_res8 = hx.commands.registerTextEditorCommand('extension.codingloverGoRateStar', (editor) => {
+		hx.env.openExternal("https://ext.dcloud.net.cn/plugin?id=2157");
 	});
+
+	let cmd_res9 = hx.commands.registerTextEditorCommand("extension.codingloverOpenResourcesDir", (editor) => {
+		let openpath = path.posix.join("file:", resources_dir);
+		console.log("打开文件夹：", openpath);
+		hx.env.openExternal(openpath);
+	});
+
+	let cmd_res10 = hx.commands.registerTextEditorCommand("extension.codingloverDelResourcesDir", (editor) => {
+		if(wifeIsReady){
+			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆容器",'', ["立即关闭"]);
+			delete_pan.then((result) => {
+				if (result == "立即关闭") {
+					client.shout('hbuilderExit');
+					askDeleteResourcesDir();
+				}
+			})
+		}else{
+			askDeleteResourcesDir();
+		}
+	});
+}
+
+function askDeleteResourcesDir(){
+	let delete_pan = showInformation("确定要删除已存储数据吗？已经保存的语音包，老婆模型都将被彻底删除，并无法恢复！！!",'<span style="color:#ff3366">★★★请注意★★★</span>', ["确定删除", "怕怕~点错了"]);
+	delete_pan.then((result) => {
+		if (result == "确定删除") {
+			let cmd = (ostype == "Darwin" ? 'rm -rf' : 'rmdir /s/q');
+			exec(cmd + ' "' + resources_dir + '"');
+			showInformation("删除成功，请重启HBuilderX");
+		}
+	})
 }
 
 function addInputAnalysis(keyword, time) {
