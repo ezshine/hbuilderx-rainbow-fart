@@ -66,7 +66,7 @@ async function activate(context) {
 	debugLog("好戏开始了：" + Date.now());
 	ostype = os.type;
 	debugLog("当前系统为" + ostype);
-
+	
 	resources_dir = path.posix.join(hx.env.appData, "ezshine-codinglover");
 	if (!fs.existsSync(resources_dir)) {
 		setStatusMsg("插件资源初始化...");
@@ -658,22 +658,23 @@ function setupCommands() {
 	});
 
 	let cmd_res10 = hx.commands.registerTextEditorCommand("extension.codingloverDelResourcesDir", (editor) => {
-		if(wifeIsReady){
-			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆容器",'', ["立即关闭"]);
+		if (wifeIsReady) {
+			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆容器", '', ["立即关闭"]);
 			delete_pan.then((result) => {
 				if (result == "立即关闭") {
 					client.shout('hbuilderExit');
 					askDeleteResourcesDir();
 				}
 			})
-		}else{
+		} else {
 			askDeleteResourcesDir();
 		}
 	});
 }
 
-function askDeleteResourcesDir(){
-	let delete_pan = showInformation("确定要删除已存储数据吗？已经保存的语音包，老婆模型都将被彻底删除，并无法恢复！！!",'<span style="color:#ff3366">★★★请注意★★★</span>', ["确定删除", "怕怕~点错了"]);
+function askDeleteResourcesDir() {
+	let delete_pan = showInformation("确定要删除已存储数据吗？已经保存的语音包，老婆模型都将被彻底删除，并无法恢复！！!",
+		'<span style="color:#ff3366">★★★请注意★★★</span>', ["确定删除", "怕怕~点错了"]);
 	delete_pan.then((result) => {
 		if (result == "确定删除") {
 			let cmd = (ostype == "Darwin" ? 'rm -rf' : 'rmdir /s/q');
