@@ -32,6 +32,7 @@ process.on('exit', (code) => {
 });
 
 let ostype;
+let enabledAppDataDir;
 let resources_dir;
 
 let input_analysis;
@@ -63,11 +64,17 @@ async function activate(context) {
 	// enabledDebug=true;
 	openDebugChannel();
 
-	debugLog("好戏开始了：" + Date.now());
+	debugLog("好戏开始了");
+	debugLog("当前时间：" + Date.now());
 	ostype = os.type;
-	debugLog("当前系统为" + ostype);
+	debugLog("当前系统：" + ostype);
 	
-	resources_dir = path.posix.join(hx.env.appData, "ezshine-codinglover");
+	//是否启用env.appData目录
+	enabledAppDataDir = pluginConfig.get("enabledAppDataDir", true);
+	debugLog("enabledAppDataDir：" + enabledAppDataDir);
+	
+	resources_dir = enabledAppDataDir?path.posix.join(hx.env.appData, "ezshine-codinglover"):path.posix.join(__dirname, "resources");
+	
 	if (!fs.existsSync(resources_dir)) {
 		setStatusMsg("插件资源初始化...");
 		await extractZipFile(path.posix.join(__dirname, "resources.zip"), resources_dir).then(() => {
@@ -109,6 +116,7 @@ async function activate(context) {
 	lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
 
 	let accordCall = setTimeout(() => {
+		debugLog("老婆容器可能已经打开，直接执行加载模型命令");
 		client.shout("changeModel", {
 			model: path.posix.join(lpPath, "model.json")
 		});
@@ -330,7 +338,7 @@ function needUpdate(currVer, promoteVer) {
 };
 async function checkUpdate(type, vn, callbacks) {
 	if (!versions) {
-		debugLog("从服务端获取...");
+		debugLog("从服务端查询...");
 		versions = await doGet("http://rfw.jnsii.com/api/checkupdate.php");
 	}
 	debugLog("最新版本信息：");
@@ -385,6 +393,12 @@ function watchconfigurationChange() {
 			enabledLive2d = pluginConfig.get("enabledLive2d", false);
 			debugLog("enabledLive2d：" + enabledLive2d);
 			openWifeContainer();
+		} else if (event.affectsConfiguration("codinglover.enabledAppDataDir")) {
+			enabledAppDataDir = pluginConfig.get("enabledAppDataDir", true);
+			debugLog("enabledAppDataDir：" + enabledAppDataDir);
+			
+			if(enabledAppDataDir)showInformation("数据存放路径变更为："+hx.env.appData+"<br>请重启HBuilderX");
+			else showInformation("数据存放路径变更为："+__dirname+"<br>请<span style='color:#ff0000;'>重启HBuilderX</span>");
 		} else if (event.affectsConfiguration("codinglover.live2dPackageName")) {
 			if (pluginConfig.get("live2dPackageName", "liang") != live2dPackageName) {
 				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
@@ -670,6 +684,10 @@ function setupCommands() {
 			askDeleteResourcesDir();
 		}
 	});
+	
+	let cmd_res11=hx.commands.registerTextEditorCommand("extension.codingloverSwitchResourcesDir",(editor)=>{
+		pluginConfig.update("enabledAppDataDir", !enabledAppDataDir);
+	});
 }
 
 function askDeleteResourcesDir() {
@@ -679,7 +697,7 @@ function askDeleteResourcesDir() {
 		if (result == "确定删除") {
 			let cmd = (ostype == "Darwin" ? 'rm -rf' : 'rmdir /s/q');
 			exec(cmd + ' "' + resources_dir + '"');
-			showInformation("删除成功，请重启HBuilderX");
+			showInformation("删除成功，请<span style='color:#ff0000;'>重启HBuilderX</span>");
 		}
 	})
 }

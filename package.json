@@ -2,7 +2,7 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）★更新啦",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.9"
@@ -39,6 +39,11 @@
 						"及时",
 						"延时"
 					]
+				},
+				"codinglover.enabledAppDataDir": {
+					"type": "boolean",
+					"default": true,
+					"description": "启用插件数据存放路径"
 				},
 				"codinglover.enabledLive2d": {
 					"type": "boolean",
@@ -96,6 +101,10 @@
 			{
 				"command": "extension.codingloverGoRateStar",
 				"title": "赏好评支持作者"
+			},
+			{
+				"command":"extension.codingloverSwitchResourcesDir",
+				"title":"切换数据存储路径"
 			}
 		],
 		"menus": {
@@ -137,30 +146,35 @@
 				}
 				,
 				{
-					"command":"extension.codingloverOpenResourcesDir",
+					"command":"extension.codingloverSwitchResourcesDir",
 					"group": "codinglover@9"
 				}
 				,
 				{
-					"command": "extension.codingloverDelResourcesDir",
+					"command":"extension.codingloverOpenResourcesDir",
 					"group": "codinglover@10"
 				}
 				,
 				{
+					"command": "extension.codingloverDelResourcesDir",
 					"group": "codinglover@11"
 				}
 				,
 				{
+					"group": "codinglover@12"
+				}
+				,
+				{
 					"command": "extension.codingloverEnabledDebug",
-					"group": "codinglover@12",
+					"group": "codinglover@13",
 					"checked":"config.codinglover.enabledDebug==1"
 				},
 				{
-					"group": "codinglover@13"
+					"group": "codinglover@14"
 				},
 				{
 					"command": "extension.codingloverGoRateStar",
-					"group": "codinglover@14"
+					"group": "codinglover@15"
 				}
 			]
 		}
