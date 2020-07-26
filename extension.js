@@ -120,7 +120,7 @@ async function activate(context) {
 		client.shout("changeModel", {
 			model: path.posix.join(lpPath, "model.json")
 		});
-	}, 1000);
+	}, 2000);
 
 	server.on('wifeContainerReady', function(m, data) {
 		clearTimeout(accordCall);

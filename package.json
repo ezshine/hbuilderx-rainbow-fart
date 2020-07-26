@@ -2,7 +2,7 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）★更新啦",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.9"
