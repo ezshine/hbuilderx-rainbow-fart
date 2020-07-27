@@ -587,15 +587,15 @@ function setupCommands() {
 		showInformation(report_str);
 	});
 
-	let cmd_res2 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledLP', (editor) => {
+	let cmd_res2 = hx.commands.registerCommand('extension.codingloverEnabledLP', (editor) => {
 		pluginConfig.update("enabledLive2d", !enabledLive2d);
 	});
 
-	let cmd_res3 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledVP', (editor) => {
+	let cmd_res3 = hx.commands.registerCommand('extension.codingloverEnabledVP', (editor) => {
 		pluginConfig.update("enabledRainbowFart", !enabledRainbowFart);
 	});
 
-	let cmd_res4 = hx.commands.registerTextEditorCommand('extension.codingloverPickVP', (editor) => {
+	let cmd_res4 = hx.commands.registerCommand('extension.codingloverPickVP', (editor) => {
 		var vpDir = path.posix.join(resources_dir, "voicepackages");
 		var res = [],
 			files = fs.readdirSync(vpDir);
@@ -624,7 +624,7 @@ function setupCommands() {
 		});
 	});
 
-	let cmd_res5 = hx.commands.registerTextEditorCommand('extension.codingloverPickLP', (editor) => {
+	let cmd_res5 = hx.commands.registerCommand('extension.codingloverPickLP', (editor) => {
 		var lpDir = path.posix.join(resources_dir, "live2dpackages");
 		var res = [],
 			files = fs.readdirSync(lpDir);
@@ -653,25 +653,25 @@ function setupCommands() {
 		});
 	});
 
-	let cmd_res6 = hx.commands.registerTextEditorCommand('extension.codingloverDownloadLP', (editor) => {
+	let cmd_res6 = hx.commands.registerCommand('extension.codingloverDownloadLP', (editor) => {
 		openQQGroupTips();
 	});
 
-	let cmd_res7 = hx.commands.registerTextEditorCommand('extension.codingloverEnabledDebug', (editor) => {
+	let cmd_res7 = hx.commands.registerCommand('extension.codingloverEnabledDebug', (editor) => {
 		pluginConfig.update("enabledDebug", !enabledDebug);
 	});
 
-	let cmd_res8 = hx.commands.registerTextEditorCommand('extension.codingloverGoRateStar', (editor) => {
+	let cmd_res8 = hx.commands.registerCommand('extension.codingloverGoRateStar', (editor) => {
 		hx.env.openExternal("https://ext.dcloud.net.cn/plugin?id=2157");
 	});
 
-	let cmd_res9 = hx.commands.registerTextEditorCommand("extension.codingloverOpenResourcesDir", (editor) => {
+	let cmd_res9 = hx.commands.registerCommand("extension.codingloverOpenResourcesDir", (editor) => {
 		let openpath = path.posix.join("file:", resources_dir);
 		console.log("打开文件夹：", openpath);
 		hx.env.openExternal(openpath);
 	});
 
-	let cmd_res10 = hx.commands.registerTextEditorCommand("extension.codingloverDelResourcesDir", (editor) => {
+	let cmd_res10 = hx.commands.registerCommand("extension.codingloverDelResourcesDir", (editor) => {
 		if (wifeIsReady) {
 			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆容器", '', ["立即关闭"]);
 			delete_pan.then((result) => {
@@ -685,8 +685,12 @@ function setupCommands() {
 		}
 	});
 	
-	let cmd_res11=hx.commands.registerTextEditorCommand("extension.codingloverSwitchResourcesDir",(editor)=>{
+	let cmd_res11=hx.commands.registerCommand("extension.codingloverSwitchResourcesDir",(editor)=>{
 		pluginConfig.update("enabledAppDataDir", !enabledAppDataDir);
+	});
+	
+	let cmd_res12=hx.commands.registerCommand("extension.codingloverOpenQNA",(editor)=>{
+		var documentPromise = hx.workspace.openTextDocument(path.posix.join(__dirname,"QNA.md"));
 	});
 }
 

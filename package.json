@@ -2,7 +2,7 @@
 	"name": "codinglover",
 	"description": "除了有彩虹屁语音，还有虚拟老婆陪你敲代码哟。会在你编程时给你爱的鼓励哟！已为大家收集数十款精美的老婆数据包。",
 	"displayName": "编程伴侣（彩虹屁老婆）★更新啦",
-	"version": "0.2.2",
+	"version": "0.2.4",
 	"publisher": "ezshine",
 	"engines": {
 		"HBuilderX": "^2.7.9"
@@ -106,6 +106,11 @@
 				"command":"extension.codingloverSwitchResourcesDir",
 				"title":"切换数据存储路径"
 			}
+			,
+			{
+				"command":"extension.codingloverOpenQNA",
+				"title":"查看使用说明"
+			}
 		],
 		"menus": {
 			"menubar/tool": [
@@ -115,66 +120,75 @@
 				{
 					"id": "codinglover",
 					"title": "编程伴侣"
+				}
+				,
+				{
+					"command": "extension.codingloverOpenQNA",
+					"group": "codinglover@1"
 				},
 				{
+					"group": "codinglover@2"
+				}
+				,
+				{
 					"command": "extension.codingloverEnabledVP",
-					"group": "codinglover@1",
+					"group": "codinglover@3",
 					"checked":"config.codinglover.enabledRainbowFart==1"
 				},
 				{
 					"command": "extension.codingloverPickVP",
-					"group": "codinglover@3"
-				},
-				{
 					"group": "codinglover@4"
 				},
 				{
+					"group": "codinglover@5"
+				},
+				{
 					"command": "extension.codingloverEnabledLP",
-					"group": "codinglover@5",
+					"group": "codinglover@6",
 					"checked":"config.codinglover.enabledLive2d==1"
 				},
 				{
 					"command": "extension.codingloverPickLP",
-					"group": "codinglover@6"
-				},
-				{
-					"command": "extension.codingloverDownloadLP",
 					"group": "codinglover@7"
 				},
 				{
+					"command": "extension.codingloverDownloadLP",
 					"group": "codinglover@8"
-				}
-				,
+				},
 				{
-					"command":"extension.codingloverSwitchResourcesDir",
 					"group": "codinglover@9"
 				}
 				,
 				{
-					"command":"extension.codingloverOpenResourcesDir",
+					"command":"extension.codingloverSwitchResourcesDir",
 					"group": "codinglover@10"
 				}
 				,
 				{
-					"command": "extension.codingloverDelResourcesDir",
+					"command":"extension.codingloverOpenResourcesDir",
 					"group": "codinglover@11"
 				}
 				,
 				{
+					"command": "extension.codingloverDelResourcesDir",
 					"group": "codinglover@12"
 				}
 				,
 				{
+					"group": "codinglover@13"
+				}
+				,
+				{
 					"command": "extension.codingloverEnabledDebug",
-					"group": "codinglover@13",
+					"group": "codinglover@14",
 					"checked":"config.codinglover.enabledDebug==1"
 				},
 				{
-					"group": "codinglover@14"
+					"group": "codinglover@15"
 				},
 				{
 					"command": "extension.codingloverGoRateStar",
-					"group": "codinglover@15"
+					"group": "codinglover@16"
 				}
 			]
 		}
