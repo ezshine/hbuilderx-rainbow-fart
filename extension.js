@@ -28,7 +28,7 @@ const pluginName = "编程伴侣";
 //监听HBuilder Node进程的退出事件，退出时通知live2dPlayer
 const process = require('process');
 process.on('exit', (code) => {
-	client.shout('hbuilderExit');
+	//client.shout('hbuilderExit');
 });
 
 let ostype;
@@ -94,7 +94,7 @@ async function activate(context) {
 	//是否开启虚拟老婆
 	enabledLive2d = pluginConfig.get("enabledLive2d", false);
 	//虚拟老婆名称
-	live2dPackageName = pluginConfig.get("live2dPackageName", "sharonring") || "sharonring";
+	live2dPackageName = pluginConfig.get("live2dPackageName", "dcloud") || "dcloud";
 
 	//是否禁用彩虹屁
 	enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
@@ -116,14 +116,17 @@ async function activate(context) {
 	lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
 
 	let accordCall = setTimeout(() => {
+		debugLog("没有收到wifeContainerReady消息");
 		debugLog("老婆容器可能已经打开，直接执行加载模型命令");
 		client.shout("changeModel", {
 			model: path.posix.join(lpPath, "model.json")
 		});
-	}, 2000);
+	}, 3000);
 
 	server.on('wifeContainerReady', function(m, data) {
+		debugLog("收到wifeContainerReady消息");
 		clearTimeout(accordCall);
+		debugLog("关闭3秒计时器");
 		debugLog("老婆容器已就绪，容器版本：" + data.v);
 
 		if (!fs.existsSync(path.posix.join(lpPath, "model.json"))) {
@@ -159,6 +162,11 @@ async function activate(context) {
 					motionfile: "mtn/aoba_live2D_32.mtn",
 					text: "你累不累呀？要不休息一下吧",
 					voice: path.posix.join(vpPath, "time_each_hour_2.mp3")
+				},
+				{
+					motionfile:"mtn/aoba_live2D_32.mtn",
+					text:"很晚了哦，要早点休息！",
+					voice: path.posix.join(vpPath, "time_midnight_2.mp3")
 				}
 			],
 			sendlog: enabledDebug
@@ -169,15 +177,15 @@ async function activate(context) {
 		server.on("wifeContainerLog", function(m, data) {
 			debugLog("来自老婆容器：" + ((typeof data == "object") ? JSON.stringify(data) : data));
 		});
-
+		
+		
 		checkUpdate("live2dplayer", data.v, function(need) {
 			if (need) {
 				debugLog("老婆容器有新版本：" + versions.live2dplayer);
 				let btns = ["立即更新", "暂不更新"];
-				let download_pan = showInformation("老婆容器有更新：" + versions.live2dplayer, "", btns);
+				let download_pan = showInformation("老婆容器有更新：" + versions.live2dplayer+"，更新前请确保已退出（托盘中没有小彩云图标）", "", btns);
 				download_pan.then((result) => {
 					if (result == "立即更新") {
-						client.shout('hbuilderExit');
 						downloadWifeContainer();
 					}
 				});
@@ -330,11 +338,12 @@ function needUpdate(currVer, promoteVer) {
 	for (var i = 0; i < len; i++) {
 		var proVal = ~~promoteVerArr[i],
 			curVal = ~~currVerArr[i];
-		if (proVal > curVal) {
-			return true;
+		if (curVal > proVal) {
+			return false;
+			break;
 		}
 	}
-	return false;
+	return true;
 };
 async function checkUpdate(type, vn, callbacks) {
 	if (!versions) {
@@ -404,14 +413,14 @@ function watchconfigurationChange() {
 				live2dPackageName = pluginConfig.get("live2dPackageName", "liang");
 				debugLog("live2dPackageName：" + live2dPackageName);
 				lpPath = path.posix.join(resources_dir, "live2dpackages", live2dPackageName);
-				if (wifeIsReady) {
-					debugLog("通知老婆容器加载数据：" + lpPath);
-				} else {
-					return debugLog("老婆容器未就绪");
+				
+				try{
+					client.shout("changeModel", {
+						model: path.posix.join(lpPath, "model.json")
+					});
+				}catch(err){
+					debugLog(err);
 				}
-				client.shout("changeModel", {
-					model: path.posix.join(lpPath, "model.json")
-				});
 			}
 		} else if (event.affectsConfiguration("codinglover.enabledRainbowFart")) {
 			enabledRainbowFart = pluginConfig.get("enabledRainbowFart", false);
@@ -501,13 +510,12 @@ function downloadWifeContainer() {
 }
 //手动安装提示
 function openQQGroupTips() {
-	let qun_pan = showInformation("加入QQ群:1059850921，可在群里交流、求助、下载更多二次元老婆模型。", "", [
+	let qun_pan = showInformation("加入QQ群:1108750812（2群）,1059850921（1群已满）。可在群里交流、求助、下载更多二次元老婆模型。", "", [
 		"加入QQ群",
 		"先不加"
 	]);
 	qun_pan.then((result) => {
-		if (result == "加入QQ群") hx.env.openExternal(
-			"http://shang.qq.com/wpa/qunwpa?idkey=d5a082a270d591e1364a5107f408086ba4ced20da4597d1fa12486f989d7341a");
+		if (result == "加入QQ群") hx.env.openExternal("https://jq.qq.com/?_wv=1027&k=77iFLAM9");
 	});
 }
 //启动老婆容器
@@ -527,10 +535,7 @@ function openWifeContainer() {
 			})
 		}
 	} else {
-		if (wifeIsReady) {
-			client.shout('hbuilderExit');
-			wifeIsReady = false;
-		}
+		if(wifeIsReady)showInformation("如需退出彩虹屁老婆请点击托盘中的小彩云图标", "");
 	}
 }
 //配置语音包
@@ -673,10 +678,9 @@ function setupCommands() {
 
 	let cmd_res10 = hx.commands.registerCommand("extension.codingloverDelResourcesDir", (editor) => {
 		if (wifeIsReady) {
-			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆容器", '', ["立即关闭"]);
+			let delete_pan = showInformation("删除已存储数据前请先关闭彩虹屁老婆，确保托盘中没有小彩云图标", '', ["已关闭"]);
 			delete_pan.then((result) => {
-				if (result == "立即关闭") {
-					client.shout('hbuilderExit');
+				if (result == "已关闭") {
 					askDeleteResourcesDir();
 				}
 			})
